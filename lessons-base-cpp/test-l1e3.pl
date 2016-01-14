@@ -13,11 +13,7 @@ use Term::ANSIColor qw(:constants);
 
 use constant REQS_LIMIT => 1;
 
-
-my @words = qw/ оДин дВа трИ чЕтрые пЯть шестЬ Семь вОсемь деВять нОль /;
-my @punctuation = qw/ . ? ! !! !!! /;
-
-my ($fhread, $fhwrite, $pid, $result, $word_to_match_count, $sentence_count);
+my ($fhread, $fhwrite, $pid, $result);
 
 # main
 {
