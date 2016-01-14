@@ -226,14 +226,14 @@ add_executable(
 
 ### Ex 1 ###
 
-set(SRC_LIST_MTH_L1E1
-    lessons-multithreading/l1e1.cpp
-)
+#set(SRC_LIST_MTH_L1E1
+#    lessons-multithreading/l1e1.cpp
+#)
 
-add_executable(
-    multithreading/l1e1
-    ${SRC_LIST_MTH_L1E1}
-)
+#add_executable(
+#    multithreading/l1e1
+#    ${SRC_LIST_MTH_L1E1}
+#)
 
 #================================LESSONS-BASE-CPP===============================
 
@@ -242,11 +242,56 @@ add_executable(
 ### Ex 1 ###
 
 set(SRC_LIST_BASE_L1E1
-    lessons-base-cpp/l1e1.c
+    lessons-base-cpp/l1e1.cpp
 )
 
 add_executable(
     base/l1e1
     ${SRC_LIST_BASE_L1E1}
 )
+
+### Ex 2 ###
+
+set(SRC_LIST_BASE_L1E2
+    lessons-base-cpp/l1e2.cpp
+)
+
+add_executable(
+    base/l1e2
+    ${SRC_LIST_BASE_L1E2}
+)
+
+### Ex 3 ###
+
+set(SRC_LIST_BASE_L1E3
+    lessons-base-cpp/l1e3.cpp
+)
+
+add_executable(
+    base/l1e3
+    ${SRC_LIST_BASE_L1E3}
+)
+
+### Ex 4 ###
+
+set(SRC_LIST_BASE_L1E4
+    lessons-base-cpp/l1e4.cpp
+)
+
+add_executable(
+    base/l1e4
+    ${SRC_LIST_BASE_L1E4}
+)
+
+### Ex 5 ###
+
+set(SRC_LIST_BASE_L1E5
+    lessons-base-cpp/l1e5.cpp
+)
+
+add_executable(
+    base/l1e5
+    ${SRC_LIST_BASE_L1E5}
+)
+
 #===============================================================================
