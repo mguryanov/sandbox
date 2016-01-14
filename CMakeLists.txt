@@ -294,4 +294,26 @@ add_executable(
     ${SRC_LIST_BASE_L1E5}
 )
 
+### Ex 6 ###
+
+set(SRC_LIST_BASE_L1E6
+    lessons-base-cpp/l1e6.cpp
+)
+
+add_executable(
+    base/l1e6
+    ${SRC_LIST_BASE_L1E6}
+)
+
+### Ex 7 ###
+
+set(SRC_LIST_BASE_L1E7
+    lessons-base-cpp/l1e7.cpp
+)
+
+add_executable(
+    base/l1e7
+    ${SRC_LIST_BASE_L1E7}
+)
+
 #===============================================================================
