@@ -42,9 +42,9 @@ sub generate_test {
 
     my $req_str=q{};
     my $born_years=[];
-    my $students_count=int( rand( 10 )) + 1;
+    my $students_count=int( rand( 9 )) + 1;
 
-    while( --$students_count )
+    while( $students_count-- )
     {
         my $f_name_index=int( rand( 2 ));
         my $s_name_index=int( rand( 2 ));
