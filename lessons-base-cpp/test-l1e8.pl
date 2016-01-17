@@ -28,11 +28,11 @@ my ($fhread, $fhwrite, $pid, $result);
 {
     for ( my $i=0; $i<REQS_LIMIT; ++$i ) {
         my $test=generate_test();
-        say $test;
-        say $result;
-#        post_test( $test );
-#        check_test( $test );
-#        finalize ();
+        #say qq{\n}.q{test : }.$test.qq{\n};
+        #say qq{\n}.q{result : }.$result.qq{\n};
+        post_test( $test );
+        check_test( $test );
+        finalize ();
     }
 }
 
@@ -42,6 +42,7 @@ sub generate_test {
 
     my $req_str=q{};
     my $born_years=[];
+    my $values=[];
     my $students_count=int( rand( 9 )) + 1;
 
     while( $students_count-- )
@@ -64,8 +65,7 @@ sub generate_test {
         my $bdata=sprintf( "%02d.%02d.%d", $mday, $mon, $year );
 
         # Иванов, Иван, Иванович, 01.01.1998, Москва, 128500, РК-6, 4.
-
-        $req_str.=  $second_names[$s_name_index].q{, }.
+        my $tmp_str=$second_names[$s_name_index].q{, }.
                     $first_names[$f_name_index].q{, }.
                     $father_names[$s_name_index].q{, }.
                     $bdata.q{, }.
@@ -73,6 +73,16 @@ sub generate_test {
                     $tel_number.q{, }.
                     $faq_names[$faq_name_index].q{, }.
                     $course_num.q{. };
+
+        my $tmp_hresult=    {
+                                q{faq} => $faq_names[$faq_name_index],
+                                q{course} => $course_num,
+                                q{byear} => $year,
+                                q{str}=>$tmp_str
+                            };
+
+        push @$values,$tmp_hresult;
+        $req_str.=$tmp_str;
     }
 
     # РК-6, 3, 1994
@@ -84,6 +94,36 @@ sub generate_test {
                 $test_course_num.q{, }.
                 $test_byear;
 
+    my ($select_by_faq,$select_by_course,$select_by_born)=qw//;
+
+#    say Dumper($values);
+
+    for my $hv ( @$values ) {
+        if( $hv->{faq} eq $faq_names[$test_faq_index] ) {
+            $select_by_faq.=$hv->{q{str}};
+        }
+
+        if( $hv->{course} == $test_course_num ) {
+            $select_by_course.=$hv->{q{str}};
+        }
+
+        if( $hv->{byear} > $test_byear ) {
+            $select_by_born.=$hv->{q{str}};
+        }
+    }
+
+    if( $select_by_faq ) {
+        $result.=$select_by_faq;
+    }
+
+    if( $select_by_course ) {
+        $result.=$select_by_course;
+    }
+
+    if( $select_by_born ) {
+        $result.=$select_by_born;
+    }
+
     return $req_str;
 }
 
@@ -93,7 +133,9 @@ sub post_test {
     my($test,$fh)=@_;
     $pid=open2(
             $fhread, $fhwrite,
-            '/home/maxim/app/my/blogspot-examples/sandbox-build/base/l1e8'
+            #'/home/maxim/app/my/blogspot-examples/sandbox-build/base/l1e8'
+            '/home/plushka/qtprojects/sandbox-build/base/l1e8'
+
         );
     binmode $fhwrite,':utf8';
     syswrite $fhwrite,$test,length($test);
@@ -113,7 +155,7 @@ sub check_test {
         return;
     }
 
-    unless ( $r =~ /^$result$/ ) {
+    unless ( $r =~ /^$result/ ) {
         say RED qq{failed response : \n}.$r.qq{\n}.
                 q{ must be : }.$result.q{ : }.
                 q{ test : }.$test;
