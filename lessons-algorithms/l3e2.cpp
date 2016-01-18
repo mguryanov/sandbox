@@ -8,99 +8,27 @@ using namespace std;
 static const unsigned int num_limit=1000000;
 
 struct dyn_deque_s {
-    dyn_deque_s( size_t size,
-                 size_t bound )
+    dyn_deque_s( deque<pair<int,int>>& points )
         :
-        buffer_size ( size ),
-        value_bound ( bound )
-    {}
+        buffer ( points )
+    {
+        size_t tmp_size=buffer.size();
+        for ( ssize_t i=( tmp_size / 2 )-1; i>=0; --i ) {
+            _sift_down( i, tmp_size-1 );
+        }
+    }
 
     ~dyn_deque_s() {}
 
-    bool is_empty() const {
-        return buffer.empty();
-    }
-
-    void push_front( int v ) {
-        buffer.push_front( v );
-    }
-
-
-    void push_back( int v ) {
-        buffer.push_back( v );
-    }
-
-
-    int pop_front( ) {
-        int tmp=buffer.at( 0 );
-        buffer.pop_front();
-        return tmp;
-    }
-
-
-    int pop_back( ) {
-        int tmp=buffer.at( buffer.size() - 1 );
-        buffer.pop_back();
-        return tmp;
-    }
-
-
     void build() {
-        for ( ssize_t i=( buffer.size() / 2 ) - 1; i>=0; --i ) {
-            _sift_down( i );
+        for ( size_t i=buffer.size()-1; i>0; ) {
+            swap( buffer[0], buffer[i] );
+            _sift_down( 0, --i );
         }
     }
-
-
-
-    void next_bound()
-    {
-        assert( !buffer.empty() );
-
-        vector<int> vtmp;
-        ssize_t bound=value_bound;
-        size_t size=buffer.size();
-
-        for( bound-=buffer[0]; bound >= 0 && size;
-             bound-=buffer[0] )
-        {
-            int max=_get_maximum( --size );
-            if( max != 1 ) {
-                vtmp.push_back( max / 2 );
-            }
-        }
-
-        for ( auto v : vtmp ) {
-            buffer.push_back( v );
-        }
-
-        build();
-    }
-
-
-    void dump_to_cout() {
-        cout << buffer_size << " : ";
-        for( auto v : buffer ) {
-            cout << v << " ";
-        }
-        cout << ": " << value_bound;
-    }
-
 
 
 private:
-
-    int _get_maximum( size_t last )
-    {
-        assert( !buffer.empty() );
-        int tmp=buffer[0];
-        buffer[0]=buffer[last];
-        buffer.pop_back();
-        if ( last ) {
-            _sift_down( 0, last-1 );
-        }
-        return tmp;
-    }
 
     void _sift_down( size_t from, size_t to )
     {
@@ -108,28 +36,28 @@ private:
         size_t right=from*2+2;
         size_t largest=from;
 
-        if ( left <= to && buffer[from] < buffer[left]) {
+        if ( left <= to &&
+             ( buffer[from].first < buffer[left].first ||
+               ( buffer[from].first == buffer[left].first &&
+                 buffer[from].second < buffer[left].second ))) {
             largest=left;
         }
 
-        if ( right <= to && buffer[largest] < buffer[right]) {
+        if ( right <= to &&
+             ( buffer[largest].first < buffer[right].first ||
+               ( buffer[largest].first == buffer[right].first &&
+                 buffer[largest].second < buffer[right].second ))) {
             largest=right;
         }
 
         if ( largest != from ) {
             swap( buffer[largest], buffer[from] );
-            _sift_down( largest );
+            _sift_down( largest, to );
         }
     }
 
-    void _sift_down( size_t from )
-    {
-        _sift_down( from, buffer.size()-1 );
-    }
-
     size_t buffer_size;
-    size_t value_bound;
-    deque<int> buffer;
+    deque<pair<int,int>>& buffer;
 };
 
 
@@ -142,6 +70,7 @@ get_size_from_stdin( size_t* s )
     cin >> *s;
 
     if ( cin.fail() ) {
+        *s=0;
         return false;
     }
 
@@ -151,64 +80,16 @@ get_size_from_stdin( size_t* s )
 
 
 bool
-get_points_from_stdin( vector<pair<int,int>>& points )
+get_points_from_stdin( deque<pair<int,int>>& points )
 {
-    int n=0;
-    int init=0;
-    size_t vnelts=0;
-    size_t vbound=0;
+    int x=0,y=0;
 
-    if ( !get_number_from_stdin( &vnelts ))
-         return false;
-
-    string line;
-    getline( cin, line );
-
-    if ( cin.fail() ) {
-        return false;
+    while( !cin.eof() ) {
+        cin >> x;
+        cin >> y;
+        points.push_back( pair<int,int>(x,y) );
     }
 
-    string illegal_characters( "-\\,|<>:#$%{}()[]\'\"^!?+*" );
-    size_t pos = line.find_first_of( illegal_characters, 0 );
-    if( pos!=string::npos ) {
-        return false;
-    }
-
-    if ( !get_number_from_stdin( &vbound ))
-         return false;
-
-    bwa.reset(
-        new dyn_deque_t( vnelts, vbound )
-    );
-
-    string::iterator it=line.begin();
-
-    for ( ; it!=line.end(); ++it ) {
-
-        if ( *it == ' ' && !init )
-            continue;
-
-        if ( *it == ' ' ) {
-            bwa->push_back( n );
-            n=0;
-            init=0;
-            continue;
-        }
-
-        init=1;
-        n*=10;
-        n+=(*it-'0');
-
-        if ( n > num_limit ) {
-            return false;
-        }
-    }
-
-    if ( init ) {
-        bwa->push_back( n );
-    }
-
-    bwa->build();
     return true;
 }
 
@@ -217,20 +98,20 @@ get_points_from_stdin( vector<pair<int,int>>& points )
 int main()
 {
     size_t size;
-    vector<pair<int,int>> points;
+    deque<pair<int,int>> points;
 
     get_size_from_stdin( &size );
     if( !get_points_from_stdin( points ))
         return 0;
 
-    size_t count=0;
+    dyn_deque_t curve( points );
+    curve.build();
 
-    while( !bascket_with_apples->is_empty()) {
-//        bascket_with_apples->dump_to_cout();
-        bascket_with_apples->next_bound();
-        ++count;
+    deque<pair<int,int>>::const_iterator iter=points.cbegin();
+
+    for( ; iter<points.cend(); ++iter ) {
+        cout << (*iter).first << " " << (*iter).second << endl;
     }
 
-    cout << count;
     return 0;
 }

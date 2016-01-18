@@ -11,7 +11,7 @@ use Data::Dumper;
 use IPC::Open2;
 use Term::ANSIColor qw(:constants);
 
-use constant REQS_LIMIT => 1;
+use constant REQS_LIMIT => 10;
 
 my ($fhread, $fhwrite, $pid, $result);
 
@@ -19,11 +19,11 @@ my ($fhread, $fhwrite, $pid, $result);
 {
     for ( my $i=0; $i<REQS_LIMIT; ++$i ) {
         my $test=generate_test();
-        say qq{ test :\n}.$test.qq{\n};
-        say qq{ result :\n}.Dumper($result).qq{\n};
-#        post_test( $test );
-#        check_test( $test );
-#        finalize ();
+#        say qq{ test :\n}.$test.qq{\n};
+#        say qq{ result :\n}.Dumper($result).qq{\n};
+        post_test( $test );
+        check_test( $test );
+        finalize ();
     }
 }
 
@@ -39,8 +39,11 @@ sub generate_test {
         push @$list,[$x,$y];
     }
 
-#    $elts_number=8;
-#    @$list = qw/ 21 22 5 39 35 1 16 7 /;
+    #$point_number=19;
+    #$list = [[2,36],[84,46],[4,63],[42,15],[31,43],[20,57],[21,68],
+    #         [25,14],[24,89],[9,52],[33,62],[82,43],[32,54],[78,21],[67,0],
+    #         [81,82],[31,22],[59,76],[92,10]];
+
 
     my $req_str=scalar( @$list ).qq{\n};
     $req_str.=join( qq{\n}, map { $_->[0].q{ }.$_->[1] } @$list );
@@ -53,7 +56,10 @@ sub generate_test {
 
 sub post_test {
     my($test,$fh)=@_;
-    $pid=open2($fhread, $fhwrite,'/home/maxim/app/my/blogspot-examples/sandbox-build/l3e2');
+    $pid=open2(
+        $fhread, $fhwrite,
+        q{/home/maxim/app/my/blogspot-examples/sandbox-build/algorithms/l3e2}
+    );
     syswrite $fhwrite,$test,length($test);
     close $fhwrite;
 }
