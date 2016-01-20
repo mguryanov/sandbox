@@ -229,6 +229,15 @@ add_executable(
 
 ### Ex 3 ###
 
+set(SRC_LIST_ALG_L3E3
+    lessons-algorithms/l3e3.cpp
+)
+
+add_executable(
+    algorithms/l3e3
+    ${SRC_LIST_ALG_L3E3}
+)
+
 #================================LESSONS-MULTITHREADING=========================
 
 ### Lesson 1 ###
