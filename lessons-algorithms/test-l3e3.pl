@@ -46,7 +46,8 @@ sub generate_test {
 #                 [69,88],[73,22],[79,9],[83,45],[85,49]];
 
     my $req_str=$segment_number.qq{\n}.
-                join( qq{\n}, map { $_->[0].q{ }.$_->[1] } @$segments );
+                join( qq{\n}, map { $_->[0].q{ }.( $_->[0] + $_->[1] ) }
+                @$segments );
 
     my $tmp=[ sort { $a->[0] <=> $b->[0] }
               sort { $a->[1] <=> $b->[1] } @$segments ];
