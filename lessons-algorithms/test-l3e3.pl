@@ -49,6 +49,16 @@ sub generate_test {
                 join( qq{\n}, map { $_->[0].q{ }.( $_->[0] + $_->[1] ) }
                 @$segments );
 
+=head
+
+    This algorithm is very hard to understand.
+    More simply for undarstanding algorithm consist several step:
+    1- sort by first point all ranges
+    2- summ lengths of 2 merging segment
+    3- merge all segments by pair, and sub from sum-length nonunique points
+
+=cut
+
     my $tmp=[ sort { $a->[0] <=> $b->[0] }
               sort { $a->[1] <=> $b->[1] } @$segments ];
 
