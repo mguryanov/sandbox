@@ -32,7 +32,7 @@ my ($fhread, $fhwrite, $pid, $result);
 
 
 sub generate_test {
-    my $segment_number=int(rand(10**2));
+    my $segment_number=3;#int(rand(10**2));
     my $segments=[];
 
     for (my $i=0;$i<($segment_number);++$i) {
@@ -44,6 +44,9 @@ sub generate_test {
 #    $segment_number=10;
 #    $segments = [[27,20],[47,16],[51,31],[59,3],[67,15],
 #                 [69,88],[73,22],[79,9],[83,45],[85,49]];
+
+    $segment_number=3;
+    $segments = [[1,3],[7,1],[2,3]];
 
     my $req_str=$segment_number.qq{\n}.
                 join( qq{\n}, map { $_->[0].q{ }.( $_->[0] + $_->[1] ) }
@@ -125,10 +128,7 @@ sub post_test {
 
 sub check_test {
     my($test)=@_;
-    my $r=[];
-    while( <$fhread> ) {
-        push @$r,[ split( q{ }, $_ ) ];
-    }
+    my $r=<$fhread>;
     close $fhread;
     unless (defined $r) {
         say RED qq{failed : \n}.
@@ -138,10 +138,8 @@ sub check_test {
         return;
     }
 
-    # smart match using ~~
-    unless ( $r ~~ $result ) {
-        say RED qq{failed response : \n}.
-                join( qq{\n}, map { $_->[0].q{ }.$_->[1] } @$r ).qq{\n}.
+    unless ( $r =~ /^$result/ ) {
+        say RED qq{failed response : \n}.$r.qq{\n}.
                 q{ must be : }.$result.qq{\n}.
                 q{ test : }.$test;
         return;

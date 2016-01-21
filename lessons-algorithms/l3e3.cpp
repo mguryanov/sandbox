@@ -8,31 +8,69 @@ using namespace std;
 static const unsigned int num_limit=1000000;
 
 struct dyn_deque_s {
-    dyn_deque_s( deque<pair<int,int>>& points,
-                 size_t size )
+    dyn_deque_s( deque<pair<int,int>>& p,
+                 size_t s )
         :
-          buffer_size( size ),
+          points_num( s ),
           unique_segments_length( 0 ),
-          buffer ( points )
+          points ( p )
     {
-        tmp.reserve( buffer_size );
+        for( auto v : points ) {
+            for( int i=v.first; i<=v.second ; ++i ) {
+                values.push_back( i );
+            }
+        }
+
+        for( auto v : values ) {
+            cout << v << " ";
+        }
+
+        cout << "=========";
     }
 
     ~dyn_deque_s() {}
 
-    size_t unique_painting() {
+    size_t unique_values_number() {
+
+        if( values.size() == 0 )
+            return 0;
+
+        int tmp = values[0];
+
+        bool deleted=false;
+        unique_segments_length=1;
+
+        for( int i=1; i<values.size(); ++i )
+        {
+            if( tmp == values[i] ) {
+                if( !deleted ) {
+                    --unique_segments_length;
+                    deleted=true;
+                }
+                continue;
+            }
+
+            tmp = values[i];
+            ++unique_segments_length;
+            deleted=false;
+        }
+
         return unique_segments_length;
     }
 
 
-    void sort_by_merge() {
+    void sort() {
+        __sort_by_merge( 0, values.size() );
 
+        for( auto v : values ) {
+            cout << v << " ";
+        }
     }
 
 
 private:
 
-    void _sort_by_merge( int index, int len )
+    void __sort_by_merge( int index, int len )
     {
         if( len <= 1 ) {
             return;
@@ -41,69 +79,56 @@ private:
         int l_len = len / 2;
         int r_len = len - l_len;
 
-        _sort_by_merge( index, l_len );
-        _sort_by_merge( index+l_len, r_len );
-        _merge( index, l_len, index+l_len, r_len );
+        __sort_by_merge( index, l_len );
+        __sort_by_merge( index+l_len, r_len );
+
+        int* tmp = new int[len];
+        __merge( index, l_len, index+l_len, r_len, tmp );
+
+        while( --len ) {
+            values[index+len]=tmp[len];
+        }
+
+        delete[] tmp;
     }
 
 
-    void _merge( int li, int ll, int ri, int rl )
+    int
+    __merge( int li, int ll, int ri, int rl, int* tmp )
     {
         int i=0,j=0;
         for( ; i<ll && j<rl ; ) {
-            if( buffer[i].first <= buffer[j].first ) {
-                _merge_segments( buffer[i], buffer[j] );
+
+            if( values[li+i] <= values[ri+j] ) {
+                tmp[i+j] = values[li+i];
                 ++i;
             }
+
             else {
-                _merge_segments( buffer[i], buffer[j] );
+                tmp[i+j] = values[ri+j];
                 ++j;
             }
+
         }
 
         if( i == ll ) {
             for( ; j<rl ; ++j ) {
-                _merge_segments( buffer[i] );
+                tmp[i+j] = values[ri+j];
             }
         }
 
         else {
             for( ; i<ll ; ++i ) {
-                _merge_segments( buffer[j] );
+                tmp[i+j] = values[li+i];
             }
         }
     }
 
-    void _merge_segments( pair<int,int>& x )
-    {
-        tmp.push_back( buffer[i] );
-    }
 
-    void _merge_segments( pair<int,int>& x, pair<int,int>& y )
-    {
-        int i=x.first,j=y.first;
-        for( ; i<x.second && j=y.second ; ) {
-            if( i <= j ) {
-                tmp.push_back( i );
-                ++i;
-            }
-            else {
-                tmp.push_back( j );
-                ++j;
-            }
-
-            if(  ) {
-
-            }
-
-        }
-
-    }
-
-    size_t buffer_size;
+    size_t points_num;
     size_t unique_segments_length;
-    vector<int> tmp;
-    deque<pair<int,int>>& buffer;
+    vector<int> values;
+    deque<pair<int,int>>& points;
 };
 
 
@@ -144,18 +169,15 @@ get_points_from_stdin( deque<pair<int,int>>& points )
 int main()
 {
     size_t size;
-    deque<pair<int,int>> plot;
+    deque<pair<int,int>> points;
 
     get_size_from_stdin( &size );
     if( !get_points_from_stdin( points ))
         return 0;
 
     dyn_deque_t plot( points, size );
-    deque<pair<int,int>>::const_iterator iter=points.cbegin();
-
-    for( ; iter<points.cend(); ++iter ) {
-        cout << (*iter).first << " " << (*iter).second << endl;
-    }
+    plot.sort();
+    cout << plot.unique_values_number() << endl;
 
     return 0;
 }
