@@ -20,12 +20,6 @@ struct dyn_deque_s {
                 values.push_back( i );
             }
         }
-
-        for( auto v : values ) {
-            cout << v << " ";
-        }
-
-        cout << "=========";
     }
 
     ~dyn_deque_s() {}
@@ -35,23 +29,24 @@ struct dyn_deque_s {
         if( values.size() == 0 )
             return 0;
 
-        int tmp = values[0];
+        int tmp=values[0];
+        int cuniq=1;
 
         bool deleted=false;
-        unique_segments_length=1;
+        unique_segments_length=0;
 
         for( int i=1; i<values.size(); ++i )
         {
             if( tmp == values[i] ) {
                 if( !deleted ) {
-                    --unique_segments_length;
+                    --cuniq;
                     deleted=true;
                 }
                 continue;
             }
 
-            tmp = values[i];
-            ++unique_segments_length;
+            ++cuniq;
+            tmp=values[i];
             deleted=false;
         }
 
@@ -85,7 +80,7 @@ private:
         int* tmp = new int[len];
         __merge( index, l_len, index+l_len, r_len, tmp );
 
-        while( --len ) {
+        while( --len >= 0 ) {
             values[index+len]=tmp[len];
         }
 
