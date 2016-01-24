@@ -238,6 +238,28 @@ add_executable(
     ${SRC_LIST_ALG_L3E3}
 )
 
+### Ex 3-1 ###
+
+set(SRC_LIST_ALG_L3E3-1
+    lessons-algorithms/l3e3-1.cpp
+)
+
+add_executable(
+    algorithms/l3e3-1
+    ${SRC_LIST_ALG_L3E3-1}
+)
+
+### Ex 4 ###
+
+set(SRC_LIST_ALG_L3E4
+    lessons-algorithms/l3e4.cpp
+)
+
+add_executable(
+    algorithms/l3e4
+    ${SRC_LIST_ALG_L3E4}
+)
+
 #================================LESSONS-MULTITHREADING=========================
 
 ### Lesson 1 ###

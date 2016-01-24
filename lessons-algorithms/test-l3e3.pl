@@ -12,7 +12,7 @@ use IPC::Open2;
 use Term::ANSIColor qw(:constants);
 use Time::HiRes qw(usleep nanosleep);
 
-use constant REQS_LIMIT => 1;
+use constant REQS_LIMIT => 100;
 
 my ($fhread, $fhwrite, $pid, $result);
 
@@ -22,7 +22,7 @@ my ($fhread, $fhwrite, $pid, $result);
         my $test=generate_test();
 #        say qq{ test :\n}.$test.qq{\n};
 #        say qq{ result :\n}.$result.qq{\n};
-#        usleep( 100000 );
+        usleep( 100000 );
         post_test( $test );
         check_test( $test );
         finalize ();
@@ -32,7 +32,7 @@ my ($fhread, $fhwrite, $pid, $result);
 
 
 sub generate_test {
-    my $segment_number=3;#int(rand(10**2));
+    my $segment_number=int(rand(10**2));
     my $segments=[];
 
     for (my $i=0;$i<($segment_number);++$i) {
@@ -45,8 +45,11 @@ sub generate_test {
 #    $segments = [[27,20],[47,16],[51,31],[59,3],[67,15],
 #                 [69,88],[73,22],[79,9],[83,45],[85,49]];
 
-    $segment_number=3;
-    $segments = [[1,3],[7,1],[2,3]];
+#    $segment_number=3;
+#    $segments = [[1,3],[7,1],[2,3]];
+
+#    $segment_number=3;
+#    $segments = [[1,43],[13,5],[27,100]];
 
     my $req_str=$segment_number.qq{\n}.
                 join( qq{\n}, map { $_->[0].q{ }.( $_->[0] + $_->[1] ) }
@@ -119,7 +122,9 @@ sub post_test {
     my($test,$fh)=@_;
     $pid=open2(
         $fhread, $fhwrite,
-        q{/home/maxim/app/my/blogspot-examples/sandbox-build/algorithms/l3e3}
+#        q{/home/maxim/app/my/blogspot-examples/sandbox-build/algorithms/l3e3}
+        q{/home/plushka/qtprojects/sandbox-build/algorithms/l3e3-1}
+
     );
     syswrite $fhwrite,$test,length($test);
     close $fhwrite;
