@@ -16,7 +16,7 @@ struct dyn_deque_s {
           points ( p )
     {
         for( auto v : points ) {
-            for( int i=v.first; i<=v.second ; ++i ) {
+            for( int i=v.first; i<v.second ; ++i ) {
                 values.push_back( i );
             }
         }
@@ -30,22 +30,21 @@ struct dyn_deque_s {
             return 0;
 
         int tmp=values[0];
-        int cuniq=1;
 
         bool deleted=false;
-        unique_segments_length=0;
+        unique_segments_length=1;
 
         for( int i=1; i<values.size(); ++i )
         {
             if( tmp == values[i] ) {
                 if( !deleted ) {
-                    --cuniq;
+                    --unique_segments_length;
                     deleted=true;
                 }
                 continue;
             }
 
-            ++cuniq;
+            ++unique_segments_length;
             tmp=values[i];
             deleted=false;
         }
@@ -56,10 +55,6 @@ struct dyn_deque_s {
 
     void sort() {
         __sort_by_merge( 0, values.size() );
-
-        for( auto v : values ) {
-            cout << v << " ";
-        }
     }
 
 
@@ -146,11 +141,12 @@ get_size_from_stdin( size_t* s )
 
 
 bool
-get_points_from_stdin( deque<pair<int,int>>& points )
+get_points_from_stdin( deque<pair<int,int>>& points,
+                       size_t n)
 {
     int x=0,y=0;
 
-    while( !cin.eof() ) {
+    while( n-- ) {
         cin >> x;
         cin >> y;
         points.push_back( pair<int,int>(x,y) );
@@ -167,7 +163,7 @@ int main()
     deque<pair<int,int>> points;
 
     get_size_from_stdin( &size );
-    if( !get_points_from_stdin( points ))
+    if( !get_points_from_stdin( points, size ))
         return 0;
 
     dyn_deque_t plot( points, size );
