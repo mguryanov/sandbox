@@ -12,7 +12,7 @@ use IPC::Open2;
 use Term::ANSIColor qw(:constants);
 use Time::HiRes qw(usleep nanosleep);
 
-use constant REQS_LIMIT => 1;
+use constant REQS_LIMIT => 100;
 
 my ($fhread, $fhwrite, $pid, $result);
 
@@ -20,12 +20,12 @@ my ($fhread, $fhwrite, $pid, $result);
 {
     for ( my $i=0; $i<REQS_LIMIT; ++$i ) {
         my $test=generate_test();
-        say qq{ test :\n}.$test.qq{\n};
-        say qq{ result :\n}.$result.qq{\n};
-#        usleep( 100000 );
-#        post_test( $test );
-#        check_test( $test );
-#        finalize ();
+#        say qq{ test :\n}.$test.qq{\n};
+#        say qq{ result :\n}.$result.qq{\n};
+        usleep( 100000 );
+        post_test( $test );
+        check_test( $test );
+        finalize ();
     }
 }
 
@@ -49,6 +49,9 @@ sub generate_test {
         }
     }
 
+#    @$list = qw/ 5 9 9 8 3 15 9 18 14 17 21 27 27 18 23 /;
+#    @$list = qw/ 5 9 9 8 3 15 9 18 14 17 /;
+
 #    @$list = map { map { $_ } @$_ } @$result;
     my $req_str=$elts_number.qq{\n}.
                 join( qq{ }, @$list ).qq{\n}.
@@ -64,8 +67,8 @@ sub post_test {
     my($test,$fh)=@_;
     $pid=open2(
         $fhread, $fhwrite,
-#        q{/home/maxim/app/my/blogspot-examples/sandbox-build/algorithms/l3e4}
-        q{/home/plushka/qtprojects/sandbox-build/algorithms/l3e4}
+        q{/home/maxim/app/my/blogspot-examples/sandbox-build/algorithms/l3e4}
+#        q{/home/plushka/qtprojects/sandbox-build/algorithms/l3e4}
     );
     syswrite $fhwrite,$test,length($test);
     close $fhwrite;
