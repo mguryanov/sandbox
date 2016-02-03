@@ -106,8 +106,6 @@ struct html_entity_map {
   entity_table_t *table;   /* the table of mappings */
 };
 
-const html_entity_map* html_get_entity_map();
-
 /*
  * returns cs_unknown iff not found;
  * if input null, returns default charset of cs_utf_8
@@ -128,10 +126,10 @@ char *string_html_encode_extra(const char *input, int &len,
  * for the charset_hint to use the default one (UTF-8).
  * (see determine_charset).
  */
-char *string_html_decode(const char *input, int &len,
-                         bool decode_double_quote, bool decode_single_quote,
-                         const char *charset_hint,
-                         bool all, bool xhp = false );
+char *string_html_decode(const char *old, int &oldlen,
+                         int64_t flags,
+                         const char *hint_charset,
+                         bool all);
 
 ///////////////////////////////////////////////////////////////////////////////
 }

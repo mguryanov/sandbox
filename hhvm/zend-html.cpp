@@ -712,6 +712,41 @@ inline static bool encode_entity(char* buf, int* buflen,
  */
 
 
+#define EMPTY_SWITCH_DEFAULT_CASE()
+
+
+static inline ulong zend_inline_hash_func(
+                                const char *arKey,
+                                uint nKeyLength)
+{
+  register ulong hash = 5381;
+
+  /* variant with the hash unrolled eight times */
+  for (; nKeyLength >= 8; nKeyLength -= 8) {
+    hash = ((hash << 5) + hash) + *arKey++;
+    hash = ((hash << 5) + hash) + *arKey++;
+    hash = ((hash << 5) + hash) + *arKey++;
+    hash = ((hash << 5) + hash) + *arKey++;
+    hash = ((hash << 5) + hash) + *arKey++;
+    hash = ((hash << 5) + hash) + *arKey++;
+    hash = ((hash << 5) + hash) + *arKey++;
+    hash = ((hash << 5) + hash) + *arKey++;
+  }
+  switch (nKeyLength) {
+    case 7: hash = ((hash << 5) + hash) + *arKey++; /* fallthrough... */
+    case 6: hash = ((hash << 5) + hash) + *arKey++; /* fallthrough... */
+    case 5: hash = ((hash << 5) + hash) + *arKey++; /* fallthrough... */
+    case 4: hash = ((hash << 5) + hash) + *arKey++; /* fallthrough... */
+    case 3: hash = ((hash << 5) + hash) + *arKey++; /* fallthrough... */
+    case 2: hash = ((hash << 5) + hash) + *arKey++; /* fallthrough... */
+    case 1: hash = ((hash << 5) + hash) + *arKey++; break;
+    case 0: break;
+EMPTY_SWITCH_DEFAULT_CASE()
+  }
+  return hash;
+}
+
+
 /* Macro for disabling flag of translation of non-basic entities where this isn't supported.
  * Not appropriate for html_entity_decode/htmlspecialchars_decode */
 #define LIMIT_ALL(all, doctype, charset) do { \
@@ -1323,7 +1358,7 @@ static inline bool resolve_named_entity_html(const char *start,
                                              unsigned *uni_cp2)
 {
     const entity_cp_map *s;
-    ulong hash = 0/*zend_inline_hash_func(start, length)*/;
+    ulong hash = zend_inline_hash_func(start, length);
 
     s = ht->buckets[hash % ht->num_elems];
     while (s->entity) {
@@ -1418,9 +1453,13 @@ char *string_html_encode(const char *old, int &oldlen,
         /* guarantee we have at least 40 bytes to write.
          * In HTML5, entities may take up to 33 bytes */
         if (len > maxlen - 40) { /* maxlen can never be smaller than 128 */
-            free(replaced);
+            char* oldptr=replaced;
             maxlen += 128;
             replaced = (char*)realloc(replaced, maxlen);
+            if( !replaced ) {
+                free( oldptr );
+                return nullptr;
+            }
         }
 
         if (status == false) {
@@ -1570,9 +1609,13 @@ char *string_html_encode(const char *old, int &oldlen,
                 /* at this point maxlen - len >= 40 */
                 if (maxlen - len < ent_len + 2 /* & and ; */) {
                     /* ent_len < oldlen, which is certainly <= SIZE_MAX/2 */
-                    free( replaced );
+                    char* oldptr=replaced;
                     maxlen += ent_len + 128;
                     replaced = (char*)realloc(replaced, maxlen);
+                    if( !replaced ) {
+                        free( oldptr );
+                        return nullptr;
+                    }
                 }
                 replaced[len++] = '&';
                 memcpy(&replaced[len], &old[cursor], ent_len);
@@ -1586,286 +1629,6 @@ char *string_html_encode(const char *old, int &oldlen,
     oldlen = len;
 
     return replaced;
-}
-
-
-char *__string_html_encode(const char *input, int &len,
-                         const int64_t qsBitmask, entity_charset charset,
-                         bool dEncode, bool htmlEnt) {
-  assert(input);
-  /**
-   * Though seems to be wasting memory a lot, we have to realize most of the
-   * time this function is called with small strings, or fragments of HTMLs.
-   * Allocating/deallocating anything less than 1K is trivial these days, and
-   * we want avoid string copying as much as possible. Of course, the return
-   * char * is really sent back at large, occupying unnessary space for
-   * potentially longer time than we need, we have to realize the two closest
-   * solutions are not that much better, either:
-   *
-   * 1. pre-calculate size by iterating through the string once: too time
-   *    consuming;
-   * 2. take a guess and double buffer size when over: still wasting, and
-   *    it may not save that much.
-   *
-   * Note: Amount of  allocation per character to be encoded may have to be
-   * increased as larger HTML Entities are implemented.
-   */
-  char *ret = (char *)malloc(len * 14uL + 1);
-  if (!ret) {
-    return nullptr;
-  }
-
-  bool utf8=(charset==cs_utf_8) ? true : false;
-
-  char *q = ret;
-  for (const char *p = input, *end = input + len; p < end; p++) {
-    unsigned char c = *p;
-    char entity[5];
-    int codeLength = 0;
-    switch (c) {
-    case '"':
-      if (qsBitmask & static_cast<int64_t>(EntBitmask::ENT_BM_DOUBLE)) {
-        *q++ = '&'; *q++ = 'q'; *q++ = 'u'; *q++ = 'o'; *q++ = 't'; *q++ = ';';
-      } else {
-        *q++ = c;
-      }
-      break;
-    case '\'':
-      if (qsBitmask & static_cast<int64_t>(EntBitmask::ENT_BM_SINGLE)) {
-        *q++ = '&';
-        if ((qsBitmask & static_cast<int64_t>(EntBitmask::ENT_BM_XML1))) {
-          *q++ = 'a'; *q++ = 'p'; *q++ = 'o'; *q++ = 's';
-        } else {
-          *q++ = '#'; *q++ = '0'; *q++ = '3'; *q++ = '9';
-        }
-        *q++ = ';';
-      } else {
-        *q++ = c;
-      }
-      break;
-    case '<':
-      *q++ = '&'; *q++ = 'l'; *q++ = 't'; *q++ = ';';
-      break;
-    case '>':
-      *q++ = '&'; *q++ = 'g'; *q++ = 't'; *q++ = ';';
-      break;
-    case '&':
-      if (!dEncode) {
-        p++;
-
-        html_get_entity_map();
-
-        bool found = false;
-        for (const char *t = p; *t; t++) {
-          if (*t == ';') {
-            int l = t - p;
-            if (l > 0) {
-              char sbuf[16] = {0};
-              char *buf;
-              if (l > 10) {
-                buf = (char* )malloc(l + 1);
-              } else {
-                buf = sbuf;
-              }
-              memcpy(buf, p, l);
-              buf[l] = '\0';
-              if (decode_entity(buf, &l, true, true,
-                cs_utf_8, true)) {
-                found = true;
-                *q++ = '&';
-                for(const char *s = p; s <= t; s++) {
-                  *q++ = *s;
-                }
-                p = t;
-              }
-              if (buf != sbuf) {
-                free(buf);
-              }
-            }
-            break;
-          }
-        }
-        if (!found) {
-          p--;
-          *q++ = '&'; *q++ = 'a'; *q++ = 'm'; *q++ = 'p'; *q++ = ';';
-        }
-      } else {
-        *q++ = '&'; *q++ = 'a'; *q++ = 'm'; *q++ = 'p'; *q++ = ';';
-      }
-      break;
-    case static_cast<unsigned char>('\xc2'):
-      if (htmlEnt && utf8 && p != end && *(p+1) == '\xa0') {
-        *q++ = '&'; *q++ = 'n'; *q++ = 'b'; *q++ = 's'; *q++ = 'p'; *q++ = ';';
-        p++;
-        break;
-      }
-
-      // fallthrough
-    default: {
-      if (LIKELY(c < 0x80)) {
-        *q++ = c;
-        break;
-      } else if ( htmlEnt &&
-                 (charset==cs_8859_1) &&
-                 (c - 160) < sizeof(ent_iso_8859_1) - 1) {
-        /**
-          * https://github.com/facebook/hhvm/issues/2186
-          * If not UTF8, and we are converting to HTML entities, use known
-          * entity equivalent of the character, if possible.
-          * Since we only support ISO-8859-1 or UTF8 right now, and they use
-          * the same mapping array, use it.
-          * Start at 0xA0 = 160
-          */
-        *q++ = '&';
-        const char *s = ent_iso_8859_1[c - 160];
-        int len = strlen(s);
-        for (int n = 0; n < len; n++) {
-          *q++ = *s++;
-        }
-        *q++ = ';';
-        break;
-      }
-
-      bool should_skip =
-        qsBitmask & static_cast<int64_t>(EntBitmask::ENT_BM_IGNORE);
-      bool should_replace =
-        qsBitmask & static_cast<int64_t>(EntBitmask::ENT_BM_SUBSTITUTE);
-      bool should_html5_convert =
-         qsBitmask & static_cast<int64_t>(EntBitmask::ENT_BM_XML1) &&
-         qsBitmask & static_cast<int64_t>(EntBitmask::ENT_BM_XHTML);
-
-      if (!utf8 && !should_html5_convert) {
-        *q++ = c;
-        break;
-      }
-
-      auto avail = end - p;
-      auto utf8_trail = [](unsigned char c) { return c >= 0x80 && c <= 0xbf; };
-      auto utf8_lead = [](unsigned char c) {
-        return c < 0x80 || (c >= 0xC2 && c <= 0xF4);
-      };
-
-      // This has to be a macro since it needs to be able to break away from
-      // the for loop we're in.
-      // ENT_IGNORE has higher precedence than ENT_SUBSTITUTE
-      // \uFFFD is Unicode Replacement Character (U+FFFD)
-      #define UTF8_ERROR_IF_LEN(cond, len) \
-        if (cond) { \
-          p += (len) - 1; \
-          if (should_skip) { break; } \
-          else if (should_replace) { strcpy(q, u8"\uFFFD"); q += 3; break; } \
-          else { goto exit_error; } \
-        }
-
-      #define UTF8_ERROR_IF(cond) UTF8_ERROR_IF_LEN(cond, 1)
-
-      if (utf8) {
-        if (c < 0xc2) {
-          UTF8_ERROR_IF(true);
-        } else if (c < 0xe0) {
-          UTF8_ERROR_IF(avail < 2);
-          UTF8_ERROR_IF_LEN(!utf8_trail(*(p + 1)), utf8_lead(*(p + 1)) ? 1 : 2);
-
-          uint16_t tc = ((c & 0x1f) << 6) | (p[1] & 0x3f);
-          UTF8_ERROR_IF_LEN(tc < 0x80, 2); // non-shortest form
-
-          codeLength = 2;
-          entity[0] = *p;
-          entity[1] = *(p + 1);
-          entity[2] = '\0';
-        } else if (c < 0xf0) {
-          if (avail < 3 || !utf8_trail(*(p + 1)) || !utf8_trail(*(p + 2))) {
-            UTF8_ERROR_IF_LEN(avail < 2 || utf8_lead(*(p + 1)), 1);
-            UTF8_ERROR_IF_LEN(avail < 3 || utf8_lead(*(p + 2)), 2);
-            UTF8_ERROR_IF_LEN(true, 3);
-          }
-
-          uint32_t tc = ((c & 0x0f) << 12) |
-                        ((*(p+1) & 0x3f) << 6) |
-                        (*(p+2) & 0x3f);
-          UTF8_ERROR_IF_LEN(tc < 0x800, 3); // non-shortest form
-          UTF8_ERROR_IF_LEN(tc >= 0xd800 && tc <= 0xdfff, 3); // surrogate
-
-          codeLength = 3;
-          entity[0] = *p;
-          entity[1] = *(p + 1);
-          entity[2] = *(p + 2);
-          entity[3] = '\0';
-        } else if (c < 0xf5) {
-          if (avail < 4 || !utf8_trail(*(p + 1)) || !utf8_trail(*(p + 2)) ||
-              !utf8_trail(*(p + 3))) {
-            UTF8_ERROR_IF_LEN(avail < 2 || utf8_lead(*(p + 1)), 1);
-            UTF8_ERROR_IF_LEN(avail < 3 || utf8_lead(*(p + 2)), 2);
-            UTF8_ERROR_IF_LEN(avail < 4 || utf8_lead(*(p + 3)), 3);
-            UTF8_ERROR_IF_LEN(true, 4);
-          }
-
-          uint32_t tc = ((c & 0x07) << 18) |
-                        ((*(p+1) & 0x3f) << 12) |
-                        ((*(p+2) & 0x3f) << 6) |
-                        (*(p+3) & 0x3f);
-
-          // non-shortest form or outside range
-          UTF8_ERROR_IF_LEN(tc < 0x10000 || tc > 0x10ffff, 4);
-
-          codeLength = 4;
-          entity[0] = *p;
-          entity[1] = *(p + 1);
-          entity[2] = *(p + 2);
-          entity[3] = *(p + 3);
-          entity[4] = '\0';
-        } else {
-          UTF8_ERROR_IF(true);
-        }
-      } else {
-        codeLength = 1;
-        entity[0] = *p;
-        entity[1] = '\0';
-      }
-
-      if (htmlEnt) {
-        html_get_entity_map();
-
-        char buf[16] = {0};
-        buf[0] = c;
-        int len = 1;
-
-        if (encode_entity(buf, &len, const_cast<char*>(entity), charset)) {
-          *q++ = '&';
-          const char *s = buf;
-          for (int n = 0; n < len; n++) {
-            *q++ = *s++;
-          }
-          *q++ = ';';
-        } else {
-          memcpy(q, p, codeLength);
-          q += codeLength;
-        }
-      } else {
-        memcpy(q, p, codeLength);
-        q += codeLength;
-      }
-      p += codeLength - 1;
-
-      break;
-    }
-    }
-
-  }
-
-  #undef UTF8_ERROR_IF
-  #undef UTF8_ERROR_IF_LEN
-
-  if (q - ret > INT_MAX) {
-    goto exit_error;
-  }
-  *q = 0;
-  len = q - ret;
-  return ret;
-
-exit_error:
-  free(ret);
-  return nullptr;
 }
 
 
@@ -1980,83 +1743,446 @@ char *string_html_encode_extra(const char *input, int &len,
   return ret;
 }
 
-char *string_html_decode(const char *input, int &len,
-                         bool decode_double_quote, bool decode_single_quote,
-                         const char *charset_hint, bool all,
-                         bool xhp /* = false */) {
-  assert(input);
 
-  if (!EntityMapInited) {
-//    Lock lock(EntityMapMutex);
-    if (!EntityMapInited) {
-      init_entity_table();
-      EntityMapInited = true;
+/*
+ *  refactoring : begin
+ */
+
+/* {{{ php_utf32_utf8 */
+static inline size_t php_utf32_utf8(
+        unsigned char *buf,
+        unsigned k)
+{
+    size_t retval = 0;
+
+    /* assert(0x0 <= k <= 0x10FFFF); */
+
+    if (k < 0x80) {
+        buf[0] = k;
+        retval = 1;
+    } else if (k < 0x800) {
+        buf[0] = 0xc0 | (k >> 6);
+        buf[1] = 0x80 | (k & 0x3f);
+        retval = 2;
+    } else if (k < 0x10000) {
+        buf[0] = 0xe0 | (k >> 12);
+        buf[1] = 0x80 | ((k >> 6) & 0x3f);
+        buf[2] = 0x80 | (k & 0x3f);
+        retval = 3;
+    } else {
+        buf[0] = 0xf0 | (k >> 18);
+        buf[1] = 0x80 | ((k >> 12) & 0x3f);
+        buf[2] = 0x80 | ((k >> 6) & 0x3f);
+        buf[3] = 0x80 | (k & 0x3f);
+        retval = 4;
     }
-  }
+    /* UTF-8 has been restricted to max 4 bytes since RFC 3629 */
 
-  entity_charset charset = determine_charset(charset_hint);
-  if (charset == cs_numelems) {
-    return nullptr;
-  }
+    return retval;
+}
+/* }}} */
 
-  char *ret = (char *)malloc(len + 1);
-  char *q = ret;
-  for (const char *p = input; *p || UNLIKELY(p - input < len); p++) {
-    char ch = *p;
-    if (ch != '&') {
-      *q++ = ch;
-      continue;
+/* {{{ unimap_bsearc_cmp
+ * Binary search of unicode code points in unicode <--> charset mapping.
+ * Returns the code point in the target charset (whose mapping table was given) or 0 if
+ * the unicode code point is not in the table.
+ */
+static inline unsigned char unimap_bsearch(
+        const uni_to_enc *table,
+        unsigned code_key_a,
+        size_t num)
+{
+    const uni_to_enc *l = table,
+                     *h = &table[num-1],
+                     *m;
+    unsigned short code_key;
+
+    /* we have no mappings outside the BMP */
+    if (code_key_a > 0xFFFFU)
+        return 0;
+
+    code_key = (unsigned short) code_key_a;
+
+    while (l <= h) {
+        m = l + (h - l) / 2;
+        if (code_key < m->un_code_point)
+            h = m - 1;
+        else if (code_key > m->un_code_point)
+            l = m + 1;
+        else
+            return m->cs_code;
     }
-    p++;
+    return 0;
+}
+/* }}} */
 
-    bool found = false;
-    for (const char *t = p; *t; t++) {
-      if (*t == ';') {
-        int l = t - p;
-        if (l > 0) {
-          char sbuf[16] = {0};
-          char *buf;
-          if (l > 10) {
-            buf = (char* )malloc(l + 1);
-          } else {
-            buf = sbuf;
-          }
-          memcpy(buf, p, l);
-          buf[l] = '\0';
-          if (decode_entity(buf, &l, decode_double_quote, decode_single_quote,
-                            charset, all, xhp)) {
-            memcpy(q, buf, l);
-            found = true;
-            p = t;
-            q += l;
-          }
-          if (buf != sbuf) {
-            free(buf);
-          }
+/* {{{ map_from_unicode */
+static inline int map_from_unicode(
+        unsigned code,
+        entity_charset charset,
+        unsigned *res)
+{
+    unsigned char found;
+    const uni_to_enc *table;
+    size_t table_size;
+
+    switch (charset) {
+    case cs_8859_1:
+        /* identity mapping of code points to unicode */
+        if (code > 0xFF) {
+            return false;
+        }
+        *res = code;
+        break;
+
+    case cs_8859_5:
+        if (code <= 0xA0 || code == 0xAD /* soft hyphen */) {
+            *res = code;
+        } else if (code == 0x2116) {
+            *res = 0xF0; /* numero sign */
+        } else if (code == 0xA7) {
+            *res = 0xFD; /* section sign */
+        } else if (code >= 0x0401 && code <= 0x044F) {
+            if (code == 0x040D || code == 0x0450 || code == 0x045D)
+                return false;
+            *res = code - 0x360;
+        } else {
+            return false;
         }
         break;
-      }
+
+    case cs_8859_15:
+        if (code < 0xA4 || (code > 0xBE && code <= 0xFF)) {
+            *res = code;
+        } else { /* between A4 and 0xBE */
+            found = unimap_bsearch(unimap_iso885915,
+                    code, sizeof(unimap_iso885915) / sizeof(*unimap_iso885915));
+            if (found)
+                *res = found;
+            else
+                return false;
+        }
+        break;
+
+    case cs_cp1252:
+        if (code <= 0x7F || (code >= 0xA0 && code <= 0xFF)) {
+            *res = code;
+        } else {
+            found = unimap_bsearch(unimap_win1252,
+                    code, sizeof(unimap_win1252) / sizeof(*unimap_win1252));
+            if (found)
+                *res = found;
+            else
+                return false;
+        }
+        break;
+
+    case cs_macroman:
+        if (code == 0x7F)
+            return false;
+        table = unimap_macroman;
+        table_size = sizeof(unimap_macroman) / sizeof(*unimap_macroman);
+        goto table_over_7F;
+    case cs_cp1251:
+        table = unimap_win1251;
+        table_size = sizeof(unimap_win1251) / sizeof(*unimap_win1251);
+        goto table_over_7F;
+    case cs_koi8r:
+        table = unimap_koi8r;
+        table_size = sizeof(unimap_koi8r) / sizeof(*unimap_koi8r);
+        goto table_over_7F;
+    case cs_cp866:
+        table = unimap_cp866;
+        table_size = sizeof(unimap_cp866) / sizeof(*unimap_cp866);
+
+table_over_7F:
+        if (code <= 0x7F) {
+            *res = code;
+        } else {
+            found = unimap_bsearch(table, code, table_size);
+            if (found)
+                    *res = found;
+            else
+                    return false;
+        }
+        break;
+
+    /* from here on, only map the possible characters in the ASCII range.
+     * to improve support here, it's a matter of building the unicode mappings.
+     * See <http://www.unicode.org/Public/6.0.0/ucd/Unihan.zip> */
+    case cs_sjis:
+    case cs_eucjp:
+        /* we interpret 0x5C as the Yen symbol. This is not universal.
+         * See <http://www.w3.org/Submission/japanese-xml/#ambiguity_of_yen> */
+        if (code >= 0x20 && code <= 0x7D) {
+            if (code == 0x5C)
+                return false;
+            *res = code;
+        } else {
+            return false;
+        }
+        break;
+
+    case cs_big5:
+    case cs_big5hkscs:
+    case cs_gb2312:
+        if (code >= 0x20 && code <= 0x7D) {
+            *res = code;
+        } else {
+            return false;
+        }
+        break;
+
+    default:
+        return false;
     }
-    if (!found) {
-      p--;
-      *q++ = '&'; // not an entity
+
+    return true;
+}
+/* }}} */
+
+
+static inline size_t write_octet_sequence(
+        unsigned char *buf,
+        entity_charset charset,
+        unsigned code)
+{
+    /* code is not necessarily a unicode code point */
+    switch (charset) {
+    case cs_utf_8:
+        return php_utf32_utf8(buf, code);
+
+    case cs_8859_1:
+    case cs_cp1252:
+    case cs_8859_15:
+    case cs_koi8r:
+    case cs_cp1251:
+    case cs_8859_5:
+    case cs_cp866:
+    case cs_macroman:
+        /* single byte stuff */
+        *buf = code;
+        return 1;
+
+    case cs_big5:
+    case cs_big5hkscs:
+    case cs_sjis:
+    case cs_gb2312:
+        /* we don't have complete unicode mappings for these yet in entity_decode,
+         * and we opt to pass through the octet sequences for these in htmlentities
+         * instead of converting to an int and then converting back. */
+#if 0
+        return php_mb2_int_to_char(buf, code);
+#else
+#ifdef ZEND_DEBUG
+        assert(code <= 0xFFU);
+#endif
+        *buf = code;
+        return 1;
+#endif
+
+    case cs_eucjp:
+#if 0 /* idem */
+        return php_mb2_int_to_char(buf, code);
+#else
+#ifdef ZEND_DEBUG
+        assert(code <= 0xFFU);
+#endif
+        *buf = code;
+        return 1;
+#endif
+
+    default:
+        assert(0);
+        return 0;
     }
-  }
-  *q = '\0';
-  len = q - ret;
-  return ret;
 }
 
-const html_entity_map* html_get_entity_map() {
-  if (!EntityMapInited) {
-//    Lock lock(EntityMapMutex);
-    if (!EntityMapInited) {
-      init_entity_table();
-      EntityMapInited = true;
+
+/* {{{ traverse_for_entities
+ * Auxiliary function to php_unescape_html_entities().
+ * - The argument "all" determines if all numeric entities are decode or only those
+ *   that correspond to quotes (depending on quote_style).
+ */
+/* maximum expansion (factor 1.2) for HTML 5 with &nGt; and &nLt; */
+/* +2 is 1 because of rest (probably unnecessary), 1 because of terminating 0 */
+#define TRAVERSE_FOR_ENTITIES_EXPAND_SIZE(oldlen) ((oldlen) + (oldlen) / 5 + 2)
+static void traverse_for_entities(
+        const char *old,
+        size_t oldlen,
+        char *ret, /* should have allocated TRAVERSE_FOR_ENTITIES_EXPAND_SIZE(olden) */
+        size_t *retlen,
+        int all,
+        int flags,
+        const entity_ht *inv_map,
+        enum entity_charset charset)
+{
+    const char *p,*lim;
+    char *q;
+    int doctype = flags & static_cast<int64_t>( EntBitmask::ENT_BM_DOC_TYPE );
+
+    lim = old + oldlen; /* terminator address */
+    assert(*lim == '\0');
+
+    for (p = old, q = ret; p < lim;) {
+        unsigned code, code2 = 0;
+        const char *next = nullptr; /* when set, next > p, otherwise possible inf loop */
+
+        /* Shift JIS, Big5 and HKSCS use multi-byte encodings where an
+         * ASCII range byte can be part of a multi-byte sequence.
+         * However, they start at 0x40, therefore if we find a 0x26 byte,
+         * we're sure it represents the '&' character. */
+
+        /* assumes there are no single-char entities */
+        if (p[0] != '&' || (p + 3 >= lim)) {
+            *(q++) = *(p++);
+            continue;
+        }
+
+        /* now p[3] is surely valid and is no terminator */
+
+        /* numerical entity */
+        if (p[1] == '#') {
+            next = &p[2];
+            if (process_numeric_entity(&next, &code) == false)
+                goto invalid_code;
+
+            /* If we're in htmlspecialchars_decode, we're only decoding entities
+             * that represent &, <, >, " and '. Is this one of them? */
+            if (!all && (code > 63U ||
+                stage3_table_be_apos_00000[code].data.ent.entity == nullptr))
+                    goto invalid_code;
+
+            /* are we allowed to decode this entity in this document type?
+             * HTML 5 is the only that has a character that cannot be used in
+             * a numeric entity but is allowed literally (U+000D). The
+             * unoptimized version would be ... || !numeric_entity_is_allowed(code) */
+            if (!unicode_cp_is_allowed(code, doctype) ||
+                (doctype == static_cast<int64_t>( EntBitmask::ENT_BM_HTML5 ) &&
+                 code == 0x0D))
+                goto invalid_code;
+
+        } else {
+            const char *start;
+            size_t ent_len;
+
+            next = &p[1];
+            start = next;
+
+            if (process_named_entity_html(&next, &start, &ent_len) == false)
+                goto invalid_code;
+
+            if (resolve_named_entity_html(start, ent_len, inv_map, &code, &code2) == false) {
+                if (doctype == static_cast<int64_t>( EntBitmask::ENT_BM_XHTML ) &&
+                    ent_len == 4    &&
+                    start[0] == 'a' &&
+                    start[1] == 'p' &&
+                    start[2] == 'o' &&
+                    start[3] == 's')
+                {
+                    /* uses html4 inv_map, which doesn't include apos;.
+                     * This is a hack to support it */
+                    code = (unsigned) '\'';
+                } else {
+                    goto invalid_code;
+                }
+            }
+        }
+
+        assert(*next == ';');
+
+        if (((code == '\'' &&
+                !(flags & static_cast<int64_t>( EntBitmask::ENT_BM_SINGLE))) ||
+             (code == '"' &&
+                !(flags & static_cast<int64_t>( EntBitmask::ENT_BM_DOUBLE))))
+            /* && code2 == '\0' always true for current maps */)
+            goto invalid_code;
+
+        /* UTF-8 doesn't need mapping (ISO-8859-1 doesn't either, but
+         * the call is needed to ensure the codepoint <= U+00FF)  */
+        if (charset != cs_utf_8) {
+            /* replace unicode code point */
+            if (map_from_unicode(code, charset, &code) == false || code2 != 0)
+                goto invalid_code; /* not representable in target charset */
+        }
+
+        q += write_octet_sequence(
+                    reinterpret_cast<u_char*>( q ),
+                    charset,
+                    code
+                );
+
+        if (code2) {
+            q += write_octet_sequence(
+                        reinterpret_cast<u_char*>( q ),
+                        charset,
+                        code2
+                     );
+        }
+
+        /* jump over the valid entity; may go beyond size of buffer; np */
+        p = next + 1;
+        continue;
+
+    invalid_code:
+        for (; p < next; p++) {
+            *(q++) = *p;
+        }
     }
-  }
-  return entity_map;
+
+    *q = '\0';
+    *retlen = (size_t)(q - ret);
 }
+/* }}} */
+
+
+char *string_html_decode(
+                const char *old,
+                int &oldlen,
+                int64_t flags,
+                const char *hint_charset,
+                bool all)
+{
+    size_t retlen;
+    char *ret;
+    enum entity_charset charset;
+    const entity_ht *inverse_map = NULL;
+    size_t new_size = TRAVERSE_FOR_ENTITIES_EXPAND_SIZE(oldlen);
+
+    if (all) {
+        charset = determine_charset(hint_charset);
+    } else {
+        charset = cs_8859_1; /* charset shouldn't matter, use ISO-8859-1 for performance */
+    }
+
+    /* don't use LIMIT_ALL! */
+
+    if (oldlen > new_size) {
+        /* overflow, refuse to do anything */
+        ret = strndup((char*)old, oldlen);
+        retlen = oldlen;
+        goto empty_source;
+    }
+    ret = static_cast<char*>( malloc(new_size) );
+    *ret = '\0';
+    retlen = oldlen;
+    if (retlen == 0) {
+        goto empty_source;
+    }
+
+    inverse_map = unescape_inverse_map(all, flags);
+
+    /* replace numeric entities */
+    traverse_for_entities(old, oldlen, ret, &retlen, all, flags, inverse_map, charset);
+
+empty_source:
+    oldlen = retlen;
+    return ret;
+}
+
+/*
+ *  refactoring : end
+ */
 
 ///////////////////////////////////////////////////////////////////////////////
 }
