@@ -39,6 +39,7 @@
 #define UNLIKELY(x) (x)
 #endif
 
+
 namespace HPHP {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,342 +53,6 @@ namespace HPHP {
  *      http://unicode.org/Public/MAPPINGS/ISO8859/8859-1.TXT
  *      http://unicode.org/Public/MAPPINGS/VENDORS/MISC/KOI8-R.TXT
  */
-
-static entity_table_t ent_iso_8859_1_00_7F[] = {
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, "Tab", "NewLine", nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, "excl", "quot", "num", "dollar", "percnt", "amp", "apos",
-  "lpar", "rpar", "ast", "plus", "comma", nullptr, "period", "sol",
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, "colon", "semi", "lt", "bne", "gt", "quest",
-  "commat", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, "lsqb", "bsol", "rsqb", "Hat", "lowbar",
-  "grave", nullptr, nullptr, nullptr, nullptr, nullptr, "fjlig", nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, "lcub", "vert", "rcub", nullptr, nullptr
-};
-
-static entity_table_t ent_koi8r[] = {
-  "boxh", "boxv", "boxdr", "boxdl", "boxur", "boxul", "boxvr", "boxvl",
-  "boxhd", "boxhu", "boxvh", "uhblk", "lhblk", "block", nullptr, nullptr,
-  "blk14", "blk12", "blk34", nullptr, nullptr, nullptr, "Sqrt", "ap",
-  "le", "ge", "nbsp", nullptr, "deg", "sup2", "middot", "div",
-  "boxH", "boxV", "boxdR", "iocy", "boxDr", "boxDR", "boxdL", "boxDl",
-  "boxDL", "boxuR", "boxUr", "boxUR", "boxuL", "boxUl", "boxUL", "boxvR",
-  "boxVr", "boxVR", "boxvL", "IOcy", "boxVl", "boxVL", "boxHd", "boxhD",
-  "boxHD", "boxHu", "boxhU", "boxHU", "boxvH", "boxVh", "boxVH", "copy",
-  "yucy", "acy", "bcy", "tscy", "dcy", "iecy", "fcy", "gcy",
-  "khcy", "icy", "jcy", "kcy", "lcy", "mcy", "ncy", "ocy",
-  "pcy", "yacy", "rcy", "scy", "tcy", "ucy", "zhcy", "vcy",
-  "softcy", "ycy", "zcy", "shcy", "ecy", "shchcy", "chcy", "hardcy",
-  "YUcy", "Acy", "Bcy", "TScy", "Dcy", "IEcy", "Fcy", "Gcy",
-  "KHcy", "Icy", "Jcy", "Kcy", "Lcy", "Mcy", "Ncy", "Ocy",
-  "Pcy", "YAcy", "Rcy", "Scy", "Tcy", "Ucy", "ZHcy", "Vcy",
-  "SOFTcy", "Ycy", "Zcy", "SHcy", "Ecy", "SHCHcy", "CHcy", "HARDcy"
-};
-
-static entity_table_t ent_cp_866[] = {
-  "Acy", "Bcy", "Vcy", "Gcy", "Dcy", "IEcy", "ZHcy", "Zcy",
-  "Icy", "Jcy", "Kcy", "Lcy", "Mcy", "Ncy", "Ocy", "Pcy",
-  "Rcy", "Scy", "Tcy", "Ucy", "Fcy", "KHcy", "TScy", "CHcy",
-  "SHcy", "SHCHcy", "HARDcy", "Ycy", "SOFTcy", "Ecy", "YUcy", "YAcy",
-  "acy", "bcy", "vcy", "gcy", "dcy", "iecy", "zhcy", "zcy",
-  "icy", "jcy", "kcy", "lcy", "mcy", "ncy", "ocy", "pcy",
-  "blk14", "blk12", "blk34", "boxv", "boxvl", "boxvL", "boxVl", "boxDl",
-  "boxdL", "boxVL", "boxV", "boxDL", "boxUL", "boxUl", "boxuL", "boxdl",
-  "boxur", "boxhu", "boxhd", "boxvr", "boxh", "boxvh", "boxvR", "boxVr",
-  "boxUR", "boxDR", "boxHU", "boxHD", "boxVR", "boxH", "boxVH", "boxHu",
-  "boxhU", "boxHd", "boxhD", "boxUr", "boxuR", "boxdR", "boxDr", "boxVh",
-  "boxvH", "boxul", "boxdr", "block", "lhblk", nullptr, nullptr, "uhblk",
-  "rcy", "scy", "tcy", "ucy", "fcy", "khcy", "tscy", "chcy",
-  "shcy", "shchcy", "hardcy", "ycy", "softcy", "ecy", "yucy", "yacy",
-  "IOcy", "iocy", "Jukcy", "jukcy", "YIcy", "yicy", "Ubrcy", "ubrcy",
-  "deg", nullptr, "middot", "Sqrt", "numero", "curren", nullptr, "nbsp"
-};
-
-static entity_table_t ent_cp_1251[] = {
-  "DJcy", "GJcy", "sbquo", "gjcy", "bdquo", "hellip", "dagger", "Dagger",
-  "euro", "permil", "LJcy", "lsaquo", "NJcy", "KJcy", "TSHcy", "DZcy",
-  "djcy", "lsquo", "rsquo", "ldquo", "rdquo", "bull", "ndash", "mdash",
-  nullptr, "trade", "ljcy", "rsaquo", "njcy", "kjcy", "tshcy", "dzcy",
-  "nbsp", "Ubrcy", "ubrcy", "Jsercy", "curren", nullptr, "brvbar", "sect",
-  "IOcy", "copy", "Jukcy", "laquo", "not", "shy", "reg", "YIcy",
-  "deg", "pm", "Iukcy", "iukcy", nullptr, "micro", "para", "middot",
-  "iocy", "numero", "jukcy", "raquo", "jsercy", "DScy", "dscy", "yicy",
-  "Acy", "Bcy", "Vcy", "Gcy", "Dcy", "IEcy", "ZHcy", "Zcy",
-  "Icy", "Jcy", "Kcy", "Lcy", "Mcy", "Ncy", "Ocy", "Pcy",
-  "Rcy", "Scy", "Tcy", "Ucy", "Fcy", "KHcy", "TScy", "CHcy",
-  "SHcy", "SHCHcy", "HARDcy", "Ycy", "SOFTcy", "Ecy", "YUcy", "YAcy",
-  "acy", "bcy", "vcy", "gcy", "dcy", "iecy", "zhcy", "zcy",
-  "icy", "jcy", "kcy", "lcy", "mcy", "ncy", "ocy", "pcy",
-  "rcy", "scy", "tcy", "ucy", "fcy", "khcy", "tscy", "chcy",
-  "shcy", "shchcy", "hardcy", "ycy", "softcy", "ecy", "yucy", "yacy"
-};
-
-/* codepage 1252 is a Windows extension to iso-8859-1. */
-static entity_table_t ent_cp_1252[] = {
-  "euro", nullptr, "sbquo", "fnof", "bdquo", "hellip", "dagger",
-  "Dagger", "circ", "permil", "Scaron", "lsaquo", "OElig",
-  nullptr, nullptr, nullptr, nullptr, "lsquo", "rsquo", "ldquo", "rdquo",
-  "bull", "ndash", "mdash", "tilde", "trade", "scaron", "rsaquo",
-  "oelig", nullptr, nullptr, "Yuml"
-};
-
-static entity_table_t ent_iso_8859_1[] = {
-  "nbsp", "iexcl", "cent", "pound", "curren", "yen", "brvbar",
-  "sect", "uml", "copy", "ordf", "laquo", "not", "shy", "reg",
-  "macr", "deg", "plusmn", "sup2", "sup3", "acute", "micro",
-  "para", "middot", "cedil", "sup1", "ordm", "raquo", "frac14",
-  "frac12", "frac34", "iquest", "Agrave", "Aacute", "Acirc",
-  "Atilde", "Auml", "Aring", "AElig", "Ccedil", "Egrave",
-  "Eacute", "Ecirc", "Euml", "Igrave", "Iacute", "Icirc",
-  "Iuml", "ETH", "Ntilde", "Ograve", "Oacute", "Ocirc", "Otilde",
-  "Ouml", "times", "Oslash", "Ugrave", "Uacute", "Ucirc", "Uuml",
-  "Yacute", "THORN", "szlig", "agrave", "aacute", "acirc",
-  "atilde", "auml", "aring", "aelig", "ccedil", "egrave",
-  "eacute", "ecirc", "euml", "igrave", "iacute", "icirc",
-  "iuml", "eth", "ntilde", "ograve", "oacute", "ocirc", "otilde",
-  "ouml", "divide", "oslash", "ugrave", "uacute", "ucirc",
-  "uuml", "yacute", "thorn", "yuml"
-};
-
-static entity_table_t ent_iso_8859_5[] = {
-  "nbsp", "IOcy", "DJcy", "GJcy", "Jukcy", "DScy", "Iukcy", "YIcy",
-  "Jsercy", "LJcy", "NJcy", "TSHcy", "KJcy", "shy", "Ubrcy", "DZcy",
-  "Acy", "Bcy", "Vcy", "Gcy", "Dcy", "IEcy", "ZHcy", "Zcy",
-  "Icy", "Jcy", "Kcy", "Lcy", "Mcy", "Ncy", "Ocy", "Pcy",
-  "Rcy", "Scy", "Tcy", "Ucy", "Fcy", "KHcy", "TScy", "CHcy",
-  "SHcy", "SHCHcy", "HARDcy", "Ycy", "SOFTcy", "Ecy", "YUcy", "YAcy",
-  "acy", "bcy", "vcy", "gcy", "dcy", "iecy", "zhcy", "zcy",
-  "icy", "jcy", "kcy", "lcy", "mcy", "ncy", "ocy", "pcy",
-  "rcy", "scy", "tcy", "ucy", "fcy", "khcy", "tscy", "chcy",
-  "shcy", "shchcy", "hardcy", "ycy", "softcy", "ecy", "yucy", "yacy",
-  "numero", "iocy", "djcy", "gjcy", "jukcy", "dscy", "iukcy", "yicy",
-  "jsercy", "ljcy", "njcy", "tshcy", "kjcy", "sect", "ubrcy", "dzcy"
-};
-
-static entity_table_t ent_iso_8859_15[] = {
-  "nbsp", "iexcl", "cent", "pound", "euro", "yen", "Scaron",
-  "sect", "scaron", "copy", "ordf", "laquo", "not", "shy", "reg",
-  "macr", "deg", "plusmn", "sup2", "sup3", nullptr, /* Zcaron */
-  "micro", "para", "middot", nullptr, /* zcaron */ "sup1", "ordm",
-  "raquo", "OElig", "oelig", "Yuml", "iquest", "Agrave", "Aacute",
-  "Acirc", "Atilde", "Auml", "Aring", "AElig", "Ccedil", "Egrave",
-  "Eacute", "Ecirc", "Euml", "Igrave", "Iacute", "Icirc",
-  "Iuml", "ETH", "Ntilde", "Ograve", "Oacute", "Ocirc", "Otilde",
-  "Ouml", "times", "Oslash", "Ugrave", "Uacute", "Ucirc", "Uuml",
-  "Yacute", "THORN", "szlig", "agrave", "aacute", "acirc",
-  "atilde", "auml", "aring", "aelig", "ccedil", "egrave",
-  "eacute", "ecirc", "euml", "igrave", "iacute", "icirc",
-  "iuml", "eth", "ntilde", "ograve", "oacute", "ocirc", "otilde",
-  "ouml", "divide", "oslash", "ugrave", "uacute", "ucirc",
-  "uuml", "yacute", "thorn", "yuml"
-};
-
-static entity_table_t ent_uni_338_402[] = {
-  /* 338 (0x0152) */
-  "OElig", "oelig", nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 352 (0x0160) */
-  "Scaron", "scaron", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 376 (0x0178) */
-  "Yuml", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 400 (0x0190) */
-  nullptr, nullptr, "fnof"
-};
-
-static entity_table_t ent_uni_spacing[] = {
-  /* 710 */
-  "circ",
-  /* 711 - 730 */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 731 - 732 */
-  nullptr, "tilde"
-};
-
-static entity_table_t ent_uni_greek[] = {
-  /* 913 */
-  "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta",
-  "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi", "Rho",
-  nullptr, "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega",
-  /* 938 - 944 are not mapped */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
-  "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "rho",
-  "sigmaf", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega",
-  /* 970 - 976 are not mapped */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  "thetasym", "upsih",
-  nullptr, nullptr, nullptr,
-  "piv"
-};
-
-static entity_table_t ent_uni_punct[] = {
-  /* 8194 */
-  "ensp", "emsp", nullptr, nullptr, nullptr, nullptr, nullptr,
-  "thinsp", nullptr, nullptr, "zwnj", "zwj", "lrm", "rlm",
-  nullptr, nullptr, nullptr, "ndash", "mdash", nullptr, nullptr, nullptr,
-  /* 8216 */
-  "lsquo", "rsquo", "sbquo", nullptr, "ldquo", "rdquo", "bdquo", nullptr,
-  "dagger", "Dagger", "bull", nullptr, nullptr, nullptr, "hellip",
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, "permil", nullptr,
-  /* 8242 */
-  "prime", "Prime", nullptr, nullptr, nullptr, nullptr, nullptr, "lsaquo", "rsaquo", nullptr,
-  nullptr, nullptr, "oline", nullptr, nullptr, nullptr, nullptr, nullptr,
-  "frasl"
-};
-
-static entity_table_t ent_uni_euro[] = {
-  "euro"
-};
-
-static entity_table_t ent_uni_8465_8501[] = {
-  /* 8465 */
-  "image", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8472 */
-  "weierp", nullptr, nullptr, nullptr,
-  /* 8476 */
-  "real", nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8482 */
-  "trade", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8501 */
-  "alefsym",
-};
-
-static entity_table_t ent_uni_8592_9002[] = {
-  /* 8592 (0x2190) */
-  "larr", "uarr", "rarr", "darr", "harr", nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8608 (0x21a0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8624 (0x21b0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, "crarr", nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8640 (0x21c0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8656 (0x21d0) */
-  "lArr", "uArr", "rArr", "dArr", "hArr", "vArr", nullptr, nullptr,
-  nullptr, nullptr, "lAarr", "rAarr", nullptr, "rarrw", nullptr, nullptr,
-  /* 8672 (0x21e0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8704 (0x2200) */
-  "forall", "comp", "part", "exist", "nexist", "empty", nullptr, "nabla",
-  "isin", "notin", "epsis", "ni", "notni", "bepsi", nullptr, "prod",
-  /* 8720 (0x2210) */
-  "coprod", "sum", "minus", "mnplus", "plusdo", nullptr, "setmn", "lowast",
-  "compfn", nullptr, "radic", nullptr, nullptr, "prop", "infin", "ang90",
-  /* 8736 (0x2220) */
-  "ang", "angmsd", "angsph", "mid", "nmid", "par", "npar", "and",
-  "or", "cap", "cup", "int", nullptr, nullptr, "conint", nullptr,
-  /* 8752 (0x2230) */
-  nullptr, nullptr, nullptr, nullptr, "there4", "becaus", nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, "sim", "bsim", nullptr, nullptr,
-  /* 8768 (0x2240) */
-  "wreath", "nsim", nullptr, "sime", "nsime", "cong", nullptr, "ncong",
-  "asymp", "nap", "ape", nullptr, "bcong", "asymp", "bump", "bumpe",
-  /* 8784 (0x2250) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8800 (0x2260) */
-  "ne", "equiv", nullptr, nullptr, "le", "ge", "lE", "gE",
-  "lnE", "gnE", "Lt", "Gt", "twixt", nullptr, "nlt", "ngt",
-  /* 8816 (0x2270) */
-  "nles", "nges", "lsim", "gsim", nullptr, nullptr, "lg", "gl",
-  nullptr, nullptr, "pr", "sc", "cupre", "sscue", "prsim", "scsim",
-  /* 8832 (0x2280) */
-  "npr", "nsc", "sub", "sup", "nsub", "nsup", "sube", "supe",
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8848 (0x2290) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, "oplus", nullptr, "otimes",
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8864 (0x22a0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, "perp", nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8880 (0x22b0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8896 (0x22c0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, "sdot", nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8912 (0x22d0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8928 (0x22e0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8944 (0x22f0) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8960 (0x2300) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  "lceil", "rceil", "lfloor", "rfloor", nullptr, nullptr, nullptr, nullptr,
-  /* 8976 (0x2310) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  /* 8992 (0x2320) */
-  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-  nullptr, "lang", "rang"
-};
-
-static entity_table_t ent_uni_9674[] = {
-  /* 9674 */
-  "loz"
-};
-
-static entity_table_t ent_uni_9824_9830[] = {
-  /* 9824 */
-  "spades", nullptr, nullptr, "clubs", nullptr, "hearts", "diams"
-};
-
-static const struct html_entity_map entity_map[] = {
-  { cs_cp866,     0x00, 0x7f, ent_iso_8859_1_00_7F },
-  { cs_cp866,     0x80, 0xff, ent_cp_866 },
-  { cs_koi8r,     0x00, 0x7f, ent_iso_8859_1_00_7F },
-  { cs_koi8r,     0x80, 0xff, ent_koi8r },
-  { cs_cp1251,    0x00, 0x7f, ent_iso_8859_1_00_7F },
-  { cs_cp1251,    0x80, 0xff, ent_cp_1251 },
-  { cs_cp1252,    0x80, 0x9f, ent_cp_1252 },
-  { cs_cp1252,    0xa0, 0xff, ent_iso_8859_1 },
-  { cs_8859_1,    0xa0, 0xff, ent_iso_8859_1 },
-  { cs_8859_5,    0xa0, 0xff, ent_iso_8859_5 },
-  { cs_8859_15,   0xa0, 0xff, ent_iso_8859_15 },
-  { cs_utf_8,     0x00, 0x7f, ent_iso_8859_1_00_7F },
-  { cs_utf_8,     0xa0, 0xff, ent_iso_8859_1 },
-  { cs_utf_8,     338,  402,  ent_uni_338_402 },
-  { cs_utf_8,     710,  732,  ent_uni_spacing },
-  { cs_utf_8,     913,  982,  ent_uni_greek },
-  { cs_utf_8,     8194, 8260, ent_uni_punct },
-  { cs_utf_8,     8364, 8364, ent_uni_euro },
-  { cs_utf_8,     8465, 8501, ent_uni_8465_8501 },
-  { cs_utf_8,     8592, 9002, ent_uni_8592_9002 },
-  { cs_utf_8,     9674, 9674, ent_uni_9674 },
-  { cs_utf_8,     9824, 9830, ent_uni_9824_9830 },
-  { cs_big5,      0xa0, 0xff, ent_iso_8859_1 },
-  { cs_gb2312,    0xa0, 0xff, ent_iso_8859_1 },
-  { cs_big5hkscs, 0xa0, 0xff, ent_iso_8859_1 },
-  { cs_sjis,      0xa0, 0xff, ent_iso_8859_1 },
-  { cs_eucjp,     0xa0, 0xff, ent_iso_8859_1 },
-  /* Missing support for these at the moment
-  { cs_macroman,  0x0b, 0xff, ent_macroman },
-  */
-  { cs_numelems }
-};
 
 static const struct {
   const char *codeset;
@@ -494,218 +159,7 @@ static int utf32_to_utf8(unsigned char *buf, int k) {
   return retval;
 }
 
-//using HtmlEntityMap = hphp_hash_map<const char*,std::string,cstr_hash,eqstr>;
-
-static volatile bool EntityMapInited = false;
-//static Mutex EntityMapMutex;
-//static HtmlEntityMap EntityMap[cs_end];
-//static HtmlEntityMap XHPEntityMap[cs_end];
-
-static void init_entity_table() {
-//  for (unsigned int i = 0; entity_map[i].charset != cs_terminator; i++) {
-//    const html_entity_map &em = entity_map[i];
-//    const entity_charset charset = entity_map[i].charset;
-
-//    int index = 0;
-//    for (int ch = em.basechar; ch <= em.endchar; ch++, index++) {
-//      const char *entity = em.table[index];
-//      if (entity == nullptr) {
-//        continue;
-//      }
-//      unsigned char buf[10];
-//      switch (charset) {
-//        case cs_8859_1:
-//        case cs_cp1252:
-//        case cs_8859_15:
-//        case cs_cp1251:
-//        case cs_8859_5:
-//        case cs_cp866:
-//        case cs_koi8r:
-//          buf[0] = ch;
-//          buf[1] = '\0';
-//          break;
-
-//        case cs_utf_8:
-//          utf32_to_utf8(buf, ch);
-//          break;
-
-//        default:
-//          continue;
-//      }
-//      EntityMap[charset][entity] = (const char *)buf;
-//      XHPEntityMap[charset][entity] = (const char *)buf;
-//    }
-
-//    EntityMap[charset]["quot"] = "\"";
-//    EntityMap[charset]["lt"] = "<";
-//    EntityMap[charset]["gt"] = ">";
-//    EntityMap[charset]["amp"] = "&";
-
-//    XHPEntityMap[charset]["quot"] = "\"";
-//    XHPEntityMap[charset]["lt"] = "<";
-//    XHPEntityMap[charset]["gt"] = ">";
-//    XHPEntityMap[charset]["amp"] = "&";
-//    // XHP-specific entities
-//    XHPEntityMap[charset]["apos"] = "\'";
-//    XHPEntityMap[charset]["cloud"] = u8"\u2601";
-//    XHPEntityMap[charset]["umbrella"] = u8"\u2602";
-//    XHPEntityMap[charset]["snowman"] = u8"\u2603";
-//    XHPEntityMap[charset]["snowflake"] = u8"\u2745";
-//    XHPEntityMap[charset]["comet"] = u8"\u2604";
-//    XHPEntityMap[charset]["thunderstorm"] = u8"\u2608";
-//  }
-
-//  // the first element is an empty table
-//  EntityMap[cs_terminator]["quot"] = "\"";
-//  EntityMap[cs_terminator]["lt"] = "<";
-//  EntityMap[cs_terminator]["gt"] = ">";
-//  EntityMap[cs_terminator]["amp"] = "&";
-//  // XHP-specific entities
-//  XHPEntityMap[cs_terminator]["apos"] = "\'";
-//  XHPEntityMap[cs_terminator]["cloud"] = u8"\u2601";
-//  XHPEntityMap[cs_terminator]["umbrella"] = u8"\u2602";
-//  XHPEntityMap[cs_terminator]["snowman"] = u8"\u2603";
-//  XHPEntityMap[cs_terminator]["snowflake"] = u8"\u2745";
-//  XHPEntityMap[cs_terminator]["comet"] = u8"\u2604";
-//  XHPEntityMap[cs_terminator]["thunderstorm"] = u8"\u2608";
-}
-
 ///////////////////////////////////////////////////////////////////////////////
-inline static bool decode_entity(char *entity, int *len,
-                                 bool decode_double_quote,
-                                 bool decode_single_quote,
-                                 entity_charset charset, bool all,
-                                 bool xhp = false) {
-  // entity is 16 bytes, allocated statically below
-  // default in PHP
-  assert(entity && *entity);
-  if (entity[0] == '#') {
-    int code;
-    if (entity[1] == 'x' || entity[1] == 'X') {
-//      if (!isxdigit(entity[2])) return false;
-      code = strtol(entity + 2, nullptr, 16);
-    } else {
-//      if (!isdigit(entity[1])) return false;
-      code = strtol(entity + 1, nullptr, 10);
-    }
-
-    // since we don't support multibyte chars other than utf-8
-    int l = 1;
-
-    if (code == 39 && decode_single_quote) {
-      entity[0] = code;
-      entity[1] = '\0';
-      *len = l;
-      return true;
-    }
-
-    if (!all          && (code != '&') &&
-        (code != '<') && (code != '>') &&
-        (code != '"') && (code != '\'')) {
-      // htmlspecialchars_decode() does not parse numeric
-      // entities other than & < > " '
-      return false;
-    }
-
-    switch (charset) {
-      case cs_utf_8:
-      {
-        unsigned char buf[10];
-        int size = utf32_to_utf8(buf, code);
-        memcpy(entity, buf, size + 1);
-        l = size;
-        break;
-      }
-
-      case cs_8859_1:
-      case cs_8859_5:
-      case cs_8859_15:
-        if ((code >= 0x80 && code < 0xa0) || code > 0xff) {
-          return false;
-        } else {
-          if (code == 39) {
-            return false;
-          }
-          entity[0] = code;
-          entity[1] = '\0';
-        }
-        break;
-
-      case cs_cp1252:
-      case cs_cp1251:
-      case cs_cp866:
-        if (code > 0xff) {
-          return false;
-        }
-        entity[0] = code;
-        entity[1] = '\0';
-        break;
-
-      case cs_big5:
-      case cs_big5hkscs:
-      case cs_sjis:
-      case cs_eucjp:
-        if (code >= 0x80) {
-          return false;
-        }
-        entity[0] = code;
-        entity[1] = '\0';
-        break;
-
-      case cs_gb2312:
-        if (code >= 0x81) {
-          return false;
-        }
-        entity[0] = code;
-        entity[1] = '\0';
-        break;
-
-      default:
-        return false;
-        break;
-    }
-    *len = l;
-    return true;
-  } else {
-//    HtmlEntityMap *entityMap;
-
-//    if (strncasecmp(entity, "quot", 4) == 0 && !decode_double_quote) {
-//      return false;
-//    }
-
-//    if (all) {
-//      entityMap = xhp ? &XHPEntityMap[charset] : &EntityMap[charset];
-//    } else {
-//      entityMap = xhp ? &XHPEntityMap[cs_terminator]
-//                      : &EntityMap[cs_terminator];
-//    }
-//    HtmlEntityMap::const_iterator iter = entityMap->find(entity);
-//    if (iter != entityMap->end()) {
-//      memcpy(entity, iter->second.c_str(), iter->second.length() + 1);
-//      *len = iter->second.length();
-//      return true;
-//    }
-  }
-
-  return false;
-}
-
-inline static bool encode_entity(char* buf, int* buflen,
-                                 const char* entity, entity_charset charset)
-{
-//  HtmlEntityMap *entityMap = &EntityMap[charset];
-
-//  for(HtmlEntityMap::const_iterator iter = entityMap->begin();
-//      iter != entityMap->end(); iter++) {
-//    if (strcmp(iter->second.c_str(), entity) == 0) {
-//      memcpy(buf, iter->first, strlen(iter->first));
-//      *buflen = strlen(iter->first);
-      return true;
-//    }
-//  }
-//  return false;
-}
-
 
 /*
  *  refactoring : begin
@@ -1943,14 +1397,14 @@ table_over_7F:
 
 
 static inline size_t write_octet_sequence(
-        unsigned char *buf,
+        char *buf,
         entity_charset charset,
         unsigned code)
 {
     /* code is not necessarily a unicode code point */
     switch (charset) {
     case cs_utf_8:
-        return php_utf32_utf8(buf, code);
+        return php_utf32_utf8(reinterpret_cast<u_char*>( buf ), code);
 
     case cs_8859_1:
     case cs_cp1252:
@@ -2106,18 +1560,10 @@ static void traverse_for_entities(
                 goto invalid_code; /* not representable in target charset */
         }
 
-        q += write_octet_sequence(
-                    reinterpret_cast<u_char*>( q ),
-                    charset,
-                    code
-                );
+        q += write_octet_sequence(q,charset,code);
 
         if (code2) {
-            q += write_octet_sequence(
-                        reinterpret_cast<u_char*>( q ),
-                        charset,
-                        code2
-                     );
+            q += write_octet_sequence(q,charset,code2);
         }
 
         /* jump over the valid entity; may go beyond size of buffer; np */
@@ -2144,9 +1590,9 @@ char *string_html_decode(
                 bool all)
 {
     size_t retlen;
-    char *ret;
+    char *ret = nullptr;
     enum entity_charset charset;
-    const entity_ht *inverse_map = NULL;
+    const entity_ht *inverse_map = nullptr;
     size_t new_size = TRAVERSE_FOR_ENTITIES_EXPAND_SIZE(oldlen);
 
     if (all) {
@@ -2179,6 +1625,185 @@ empty_source:
     oldlen = retlen;
     return ret;
 }
+
+
+
+/* {{{ write_s3row_data */
+static inline void write_s3row_data(
+        const entity_stage3_row *r,
+        unsigned orig_cp,
+        enum entity_charset charset,
+        vector<pair<string,string>>& arr)
+{
+    char key[9] = ""; /* two unicode code points in UTF-8 */
+    char entity[LONGEST_ENTITY_LENGTH + 2] = {'&'};
+    size_t written_k1;
+
+    written_k1 = write_octet_sequence(key, charset, orig_cp);
+
+    if (!r->ambiguous) {
+        size_t l = r->data.ent.entity_len;
+        memcpy(&entity[1], r->data.ent.entity, l);
+        entity[l + 1] = ';';
+        arr.push_back( pair<string,string>(
+                                string( key, written_k1 + 1 ),
+                                string( entity, l + 2 )
+                            )
+                        );
+        //add_assoc_stringl_ex(arr, key, written_k1 + 1, entity, l + 2, 1);
+    } else {
+        unsigned i, num_entries;
+        const entity_multicodepoint_row *mcpr = r->data.multicodepoint_table;
+
+        if (mcpr[0].leading_entry.default_entity != nullptr) {
+            size_t l = mcpr[0].leading_entry.default_entity_len;
+            memcpy(&entity[1], mcpr[0].leading_entry.default_entity, l);
+            entity[l + 1] = ';';
+            arr.push_back( pair<string,string>(
+                                    string( key, written_k1 + 1 ),
+                                    string( entity, l + 2 )
+                                )
+                            );
+            //add_assoc_stringl_ex(arr, key, written_k1 + 1, entity, l + 2, 1);
+        }
+        num_entries = mcpr[0].leading_entry.size;
+        for (i = 1; i <= num_entries; i++) {
+            size_t   l, written_k2;
+            unsigned uni_cp, spe_cp;
+
+            uni_cp = mcpr[i].normal_entry.second_cp;
+            l = mcpr[i].normal_entry.entity_len;
+
+            if (!CHARSET_UNICODE_COMPAT(charset)) {
+                if (map_from_unicode(uni_cp, charset, &spe_cp) == false)
+                    continue; /* non representable in this charset */
+            } else {
+                spe_cp = uni_cp;
+            }
+
+            written_k2 = write_octet_sequence(&key[written_k1], charset, spe_cp);
+            memcpy(&entity[1], mcpr[i].normal_entry.entity, l);
+            entity[l + 1] = ';';
+            entity[l + 1] = '\0';
+            arr.push_back( pair<string,string>(
+                                   string( key, written_k1 + written_k2 + 1 ),
+                                   string( entity, l + 1 )
+                               )
+                           );
+            //add_assoc_stringl_ex(arr, key, written_k1 + written_k2 + 1, entity, l + 1, 1);
+        }
+    }
+}
+/* }}} */
+
+
+/* {{{ proto array get_html_translation_table([int table [, int flags [, string charset_hint]]])
+   Returns the internal translation table used by htmlspecialchars and htmlentities */
+vector<pair<string,string>>
+get_html_translation_table(int64_t table /* = 0 */,
+                           int64_t flags /* = k_ENT_HTML_QUOTE_DOUBLE */,
+                           const char* charset_hint /* = "UTF-8" */)
+{
+    int64_t doctype;
+    entity_table_opt entity_table;
+    const enc_to_uni *to_uni_table = nullptr;
+    entity_charset charset;
+
+    /* in this function we have to jump through some loops because we're
+     * getting the translated table from data structures that are optimized for
+     * random access, not traversal */
+
+    bool all = (table == k_HTML_ENTITIES);
+    flags |= k_ENT_HTML_QUOTE_DOUBLE;
+
+    charset = determine_charset(charset_hint);
+    doctype = flags & k_ENT_HTML_DOC_TYPE_MASK;
+    LIMIT_ALL(all, doctype, charset);
+
+    vector<pair<string,string>> ret;
+
+    entity_table = determine_entity_table(all, doctype);
+    if (all && !CHARSET_UNICODE_COMPAT(charset)) {
+        to_uni_table = enc_to_uni_index[charset];
+    }
+
+    if (all) { /* HTML_ENTITIES (actually, any non-zero value for 1st param) */
+        const entity_stage1_row *ms_table = entity_table.ms_table;
+
+        if (CHARSET_UNICODE_COMPAT(charset)) {
+            unsigned i, j, k, max_i, max_j, max_k;
+            /* no mapping to unicode required */
+            if (CHARSET_SINGLE_BYTE(charset)) { /* ISO-8859-1 */
+                max_i = 1; max_j = 4; max_k = 64;
+            } else {
+                max_i = 0x1E; max_j = 64; max_k = 64;
+            }
+
+            for (i = 0; i < max_i; i++) {
+                if (ms_table[i] == empty_stage2_table)
+                    continue;
+                for (j = 0; j < max_j; j++) {
+                    if (ms_table[i][j] == empty_stage3_table)
+                        continue;
+                    for (k = 0; k < max_k; k++) {
+                        const entity_stage3_row *r = &ms_table[i][j][k];
+                        unsigned code;
+
+                        if (r->data.ent.entity == nullptr)
+                            continue;
+
+                        code = ENT_CODE_POINT_FROM_STAGES(i, j, k);
+                        if (((code == '\'' && !(flags & k_ENT_HTML_QUOTE_SINGLE)) ||
+                             (code == '"' && !(flags & k_ENT_HTML_QUOTE_DOUBLE))))
+                            continue;
+
+                        write_s3row_data(r, code, charset, ret);
+                    }
+                }
+            }
+        } else {
+            /* we have to iterate through the set of code points for this
+             * encoding and map them to unicode code points */
+            unsigned i;
+            for (i = 0; i <= 0xFF; i++) {
+                const entity_stage3_row *r;
+                unsigned uni_cp;
+
+                /* can be done before mapping, they're invariant */
+                if (((i == '\'' && !(flags & k_ENT_HTML_QUOTE_SINGLE)) ||
+                     (i == '"' && !(flags & k_ENT_HTML_QUOTE_DOUBLE))))
+                    continue;
+
+                map_to_unicode(i, to_uni_table, &uni_cp);
+                r = &ms_table[ENT_STAGE1_INDEX(uni_cp)][ENT_STAGE2_INDEX(uni_cp)][ENT_STAGE3_INDEX(uni_cp)];
+                if (r->data.ent.entity == nullptr)
+                    continue;
+
+                write_s3row_data(r, i, charset, ret);
+            }
+        }
+    } else {
+        /* we could use sizeof(stage3_table_be_apos_00000) as well */
+        unsigned    j, numelems = sizeof(stage3_table_be_noapos_00000) /
+                                  sizeof(*stage3_table_be_noapos_00000);
+
+        for (j = 0; j < numelems; j++) {
+            const entity_stage3_row *r = &entity_table.table[j];
+            if (r->data.ent.entity == nullptr)
+                continue;
+
+            if (((j == '\'' && !(flags & k_ENT_HTML_QUOTE_SINGLE)) ||
+                 (j == '"' && !(flags & k_ENT_HTML_QUOTE_DOUBLE))))
+                continue;
+
+            /* charset is indifferent, used cs_8859_1 for efficiency */
+            write_s3row_data(r, j, cs_8859_1, ret);
+        }
+    }
+
+    return ret;
+}
+/* }}} */
 
 /*
  *  refactoring : end

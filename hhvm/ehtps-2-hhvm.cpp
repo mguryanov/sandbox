@@ -9,12 +9,101 @@ using namespace std;
 using namespace HPHP;
 
 
+
+bool
+test_html_translation_table(
+        const char* header,
+        const char* charset,
+        HPHP::EntBitmask doc,
+        int64_t all)
+{
+    cout << header;
+
+    vector<pair<string,string>> vec=
+            get_html_translation_table(
+                    all,
+                    static_cast<int64_t>( doc ),
+                    charset
+                );
+
+    for( auto v : vec ) {
+        int64_t flag=static_cast<int64_t>( doc )                        |
+                     static_cast<int64_t>( EntBitmask::ENT_BM_IGNORE )  |
+                     static_cast<int64_t>( EntBitmask::ENT_BM_SINGLE )  |
+                     static_cast<int64_t>( EntBitmask::ENT_BM_DOUBLE );
+
+        int len=v.second.size();
+        char* decoded_response=HPHP::string_html_decode(
+                                            v.second.c_str(),len,
+                                            flag,charset,
+                                            true
+                                       );
+
+        if( len ) {
+            if( !strncmp( v.first.c_str(), decoded_response, len )) {
+                free ( decoded_response );
+                return true;
+            }
+
+            free ( decoded_response );
+        }
+
+        cout << "\033[1;31m"
+             << v.second
+             << "\033[0m" << endl;
+
+        return false;
+    }
+
+}
+
+bool
+test_decode_sentence(
+        const char* header,
+        const char* sentence,
+        const char* reference,
+        const char* charset,
+        HPHP::EntBitmask doc )
+{
+    cout << header;
+
+    int64_t flag=static_cast<int64_t>( doc )                        |
+                 static_cast<int64_t>( EntBitmask::ENT_BM_IGNORE )  |
+                 static_cast<int64_t>( EntBitmask::ENT_BM_SINGLE )  |
+                 static_cast<int64_t>( EntBitmask::ENT_BM_DOUBLE );
+
+    int len=std::char_traits<char>::length( sentence );
+    char* decoded_response=HPHP::string_html_decode(
+                                        sentence,len,flag,
+                                        charset,
+                                        true
+                                   );
+
+    if( doc == EntBitmask::ENT_BM_HTML401 ) {
+        int rlen=std::char_traits<char>::length( reference );
+        if( strncmp( reference, decoded_response, rlen ) != 0 ) {
+            cout << "\033[1;31m"
+                 << decoded_response
+                 << "\033[0m" << endl;
+            free ( decoded_response );
+            return false;
+        }
+    }
+
+    free ( decoded_response );
+    return true;
+}
+
+
 bool
 test_encode_sentence(
+        const char* header,
         const char* sentence,
         entity_charset charset,
         HPHP::EntBitmask doc )
 {
+    cout << header;
+
     int64_t flag=static_cast<int64_t>( doc )                        |
                  static_cast<int64_t>( EntBitmask::ENT_BM_IGNORE )  |
                  static_cast<int64_t>( EntBitmask::ENT_BM_SINGLE )  |
@@ -29,10 +118,22 @@ test_encode_sentence(
                                         true
                                    );
 
-    cout << "\033[1;32m"
-         << encoded_response
-         << "\033[0m" << endl;
+    const char* reference_sentence=
+                        reference_html5sentence;
 
+    if( doc == EntBitmask::ENT_BM_HTML401 ) {
+        reference_sentence=reference_html401sentence;
+        int rlen=std::char_traits<char>::length( reference_sentence );
+        if( strncmp( reference_sentence, encoded_response, rlen ) != 0 ) {
+            cout << "\033[1;31m"
+                 << encoded_response
+                 << "\033[0m" << endl;
+            free ( encoded_response );
+            return false;
+        }
+    }
+
+    free ( encoded_response );
     return true;
 }
 
@@ -212,60 +313,227 @@ int main()
         }
     }
 
-    // text slot test
+    // encode text slot
 
     // HTML401
 
-    test_encode_sentence(
-                koi8r_sentence,
+    if ( test_encode_sentence(
+                "htmlentities sentence HTML401 encode: ",
+                html401sentence,
                 cs_koi8r,
-                EntBitmask::ENT_BM_HTML401
-            );
+                EntBitmask::ENT_BM_HTML401) &&
 
-    test_encode_sentence(
-                cp866_sentence,
+        test_encode_sentence(
+                "",
+                html401sentence,
                 cs_cp866,
-                EntBitmask::ENT_BM_HTML401
-            );
+                EntBitmask::ENT_BM_HTML401 ) &&
 
-    test_encode_sentence(
-                cp1251_sentence,
+        test_encode_sentence(
+                "",
+                html401sentence,
                 cs_cp1251,
-                EntBitmask::ENT_BM_HTML401
-            );
+                EntBitmask::ENT_BM_HTML401 ) &&
 
-    test_encode_sentence(
-                utf8_sentence,
+        test_encode_sentence(
+                "",
+                html401sentence,
                 cs_utf_8,
-                EntBitmask::ENT_BM_HTML401
-            );
-
-    test_encode_sentence(
-                koi8r_sentence,
-                cs_koi8r,
-                EntBitmask::ENT_BM_HTML5
-            );
+                EntBitmask::ENT_BM_HTML401 ) )
+    {
+        cout << "\033[1;32mOk!\033[0m" << endl;
+    }
 
     // HTML5
 
-    test_encode_sentence(
-                cp866_sentence,
+    if ( test_encode_sentence(
+                "htmlentities sentence HTML5 encode: ",
+                koi8r_html5sentence,
+                cs_koi8r,
+                EntBitmask::ENT_BM_HTML5 ) &&
+
+        test_encode_sentence(
+                "",
+                cp866_html5sentence,
                 cs_cp866,
-                EntBitmask::ENT_BM_HTML5
-            );
+                EntBitmask::ENT_BM_HTML5 ) &&
 
 
-    test_encode_sentence(
-                cp1251_sentence,
+        test_encode_sentence(
+                "",
+                cp1251_html5sentence,
                 cs_cp1251,
-                EntBitmask::ENT_BM_HTML5
-            );
+                EntBitmask::ENT_BM_HTML5 ) &&
 
-    test_encode_sentence(
-                utf8_sentence,
+        test_encode_sentence(
+                "",
+                utf8_html5sentence,
                 cs_utf_8,
-                EntBitmask::ENT_BM_HTML5
-            );
+                EntBitmask::ENT_BM_HTML5 ) )
+    {
+        cout << "\033[1;32mOk!\033[0m" << endl;
+    }
+
+    // decode text slot
+
+    // HTML401
+
+    if ( test_decode_sentence(
+                "htmlentities sentence HTML401 decode: ",
+                reference_html401sentence,
+                html401sentence,
+                "koi8r",
+                EntBitmask::ENT_BM_HTML401) &&
+
+        test_decode_sentence(
+                "",
+                reference_html401sentence,
+                html401sentence,
+                "cp866",
+                EntBitmask::ENT_BM_HTML401 ) &&
+
+        test_decode_sentence(
+                "",
+                reference_html401sentence,
+                html401sentence,
+                "cp1251",
+                EntBitmask::ENT_BM_HTML401 ) &&
+
+        test_decode_sentence(
+                "",
+                reference_html401sentence,
+                html401sentence,
+                "utf-8",
+                EntBitmask::ENT_BM_HTML401 ) )
+    {
+        cout << "\033[1;32mOk!\033[0m" << endl;
+    }
+
+    // HTML5
+
+    if ( test_decode_sentence(
+                "htmlentities sentence HTML5 decode: ",
+                reference_html5sentence,
+                koi8r_html5sentence,
+                "koi8r",
+                EntBitmask::ENT_BM_HTML5 ) &&
+
+        test_decode_sentence(
+                "",
+                reference_html5sentence,
+                cp866_html5sentence,
+                "cp866",
+                EntBitmask::ENT_BM_HTML5 ) &&
+
+
+        test_decode_sentence(
+                "",
+                reference_html5sentence,
+                cp1251_html5sentence,
+                "cp1251",
+                EntBitmask::ENT_BM_HTML5 ) &&
+
+        test_decode_sentence(
+                "",
+                reference_html5sentence,
+                utf8_html5sentence,
+                "utf-8",
+                EntBitmask::ENT_BM_HTML5 ) )
+    {
+        cout << "\033[1;32mOk!\033[0m" << endl;
+    }
+
+    // get_html_translation_table
+
+    // HTMLX
+
+    if( test_html_translation_table(
+                "get_html_translation_table XHTML: ",
+                "koi8r",
+                EntBitmask::ENT_BM_XHTML,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "cp866",
+                EntBitmask::ENT_BM_XHTML,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "cp1251",
+                EntBitmask::ENT_BM_XHTML,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "utf-8",
+                EntBitmask::ENT_BM_XHTML,
+                k_HTML_ENTITIES ) )
+    {
+        cout << "\033[1;32mOk!\033[0m" << endl;
+    }
+
+    // HTML401
+
+    if( test_html_translation_table(
+                "get_html_translation_table HTML401: ",
+                "koi8r",
+                EntBitmask::ENT_BM_HTML401,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "cp866",
+                EntBitmask::ENT_BM_HTML401,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "cp1251",
+                EntBitmask::ENT_BM_HTML401,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "utf-8",
+                EntBitmask::ENT_BM_HTML401,
+                k_HTML_ENTITIES ) )
+    {
+        cout << "\033[1;32mOk!\033[0m" << endl;
+    }
+
+
+    // HTML5
+
+
+    if( test_html_translation_table(
+                "get_html_translation_table HTML5: ",
+                "koi8r",
+                EntBitmask::ENT_BM_HTML5,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "cp866",
+                EntBitmask::ENT_BM_HTML5,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "cp1251",
+                EntBitmask::ENT_BM_HTML5,
+                k_HTML_ENTITIES ) &&
+
+        test_html_translation_table(
+                "",
+                "utf-8",
+                EntBitmask::ENT_BM_HTML5,
+                k_HTML_ENTITIES ) )
+    {
+        cout << "\033[1;32mOk!\033[0m" << endl;
+    }
+
 
     return 0;
 }

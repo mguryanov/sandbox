@@ -19,12 +19,36 @@
 #define incl_HPHP_ZEND_HTML_H_
 
 #include <cstdint>
+#include <string>
+#include <vector>
 #include "html-table-php.h"
 
 // Avoid dragging in the icu namespace.
 #ifndef U_USING_ICU_NAMESPACE
 #define U_USING_ICU_NAMESPACE 0
 #endif
+
+constexpr int64_t k_ENT_HTML_QUOTE_NONE = 0;
+constexpr int64_t k_ENT_HTML_QUOTE_SINGLE = 1;
+constexpr int64_t k_ENT_HTML_QUOTE_DOUBLE = 2;
+constexpr int64_t k_ENT_HTML_IGNORE_ERRORS = 4;
+constexpr int64_t k_ENT_HTML_SUBSTITUTE_ERRORS = 8;
+constexpr int64_t k_ENT_HTML_DOC_TYPE_MASK = (16|32);
+constexpr int64_t k_ENT_HTML_DOC_HTML401 = 0;
+constexpr int64_t k_ENT_HTML_DOC_XML1 = 16;
+constexpr int64_t k_ENT_HTML_DOC_XHTML = 32;
+constexpr int64_t k_ENT_HTML_DOC_HTML5 = (16|32);
+constexpr int64_t k_ENT_HTML_SUBSTITUTE_DISALLOWED_CHARS = 128;
+constexpr int64_t k_ENT_FB_UTF8 = 32768;
+constexpr int64_t k_ENT_FB_UTF8_ONLY = 65536;
+
+constexpr int64_t k_ENT_QUOTES = k_ENT_HTML_QUOTE_DOUBLE |
+                                 k_ENT_HTML_QUOTE_SINGLE;
+
+constexpr int64_t k_HTML_SPECIALCHARS = 0;
+constexpr int64_t k_HTML_ENTITIES = 1;
+
+using namespace std;
 
 namespace HPHP {
 ///////////////////////////////////////////////////////////////////////////////
@@ -78,18 +102,6 @@ enum class EntBitmask {
                              * (otherwise) instead of leaving them as is */
 };
 
-//namespace entity_charset_enum {
-//enum entity_charset_impl {
-//  cs_terminator, cs_8859_1, cs_cp1252,
-//  cs_8859_15, cs_utf_8, cs_big5, cs_gb2312,
-//  cs_big5hkscs, cs_sjis, cs_eucjp, cs_koi8r,
-//  cs_cp1251, cs_8859_5, cs_cp866, cs_macroman,
-//  cs_unknown,
-//  cs_end
-//};
-//}
-//typedef entity_charset_enum::entity_charset_impl entity_charset;
-
 struct HtmlBasicEntity {
   unsigned short charcode;
   const char *entity;
@@ -130,6 +142,11 @@ char *string_html_decode(const char *old, int &oldlen,
                          int64_t flags,
                          const char *hint_charset,
                          bool all);
+
+vector<pair<string,string>>
+get_html_translation_table(int64_t table,
+                           int64_t flags,
+                           const char* charset_hint);
 
 ///////////////////////////////////////////////////////////////////////////////
 }
