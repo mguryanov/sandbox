@@ -14,7 +14,7 @@ set(CMAKE_C_FLAGS
 )
 
 set(CMAKE_CXX_FLAGS
-    "-std=c++11 -pedantic-errors"
+    "-std=c++11 -pedantic-errors -Wall"
 )
 
 add_subdirectory( hhvm )

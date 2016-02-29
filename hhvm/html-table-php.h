@@ -74,7 +74,7 @@ static const struct {
         { "866",                cs_cp866 },
         { "ibm866",             cs_cp866 },
         { "MacRoman",		cs_macroman },
-        { nullptr }
+        { nullptr,              cs_numelems }
 };
 
 /* longest entity name length excluding & and ; */

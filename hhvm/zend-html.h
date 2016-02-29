@@ -124,7 +124,7 @@ struct html_entity_map {
  */
 entity_charset determine_charset(const char*);
 
-char *string_html_encode(const char *input, int &len,
+char *string_html_encode(const char *input, size_t &len,
                          const int64_t qsBitmask, entity_charset charset,
                          bool dEncode, bool htmlEnt);
 char *string_html_encode_extra(const char *input, int &len,

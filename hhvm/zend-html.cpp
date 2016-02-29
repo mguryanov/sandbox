@@ -28,9 +28,6 @@
 #include <climits>
 #include <ctype.h>
 
-//#include "hphp/util/lock.h"
-//#include "hphp/util/functional.h"
-
 #if defined(__GNUC__) && __GNUC__ >= 4
 #define LIKELY(x)   (__builtin_expect((x), 1))
 #define UNLIKELY(x) (__builtin_expect((x), 0))
@@ -90,7 +87,7 @@ static const struct {
   { "EUC-JP",         cs_eucjp },
   { "MacRoman",       cs_macroman },
   */
-  { nullptr }
+  { nullptr,          cs_numelems }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -115,48 +112,6 @@ entity_charset determine_charset(const char *charset_hint) {
   }
 
   return charset;
-}
-
-static int utf32_to_utf8(unsigned char *buf, int k) {
-  int retval = 0;
-
-  if (k < 0x80) {
-    buf[0] = k;
-    retval = 1;
-  } else if (k < 0x800) {
-    buf[0] = 0xc0 | (k >> 6);
-    buf[1] = 0x80 | (k & 0x3f);
-    retval = 2;
-  } else if (k < 0x10000) {
-    buf[0] = 0xe0 | (k >> 12);
-    buf[1] = 0x80 | ((k >> 6) & 0x3f);
-    buf[2] = 0x80 | (k & 0x3f);
-    retval = 3;
-  } else if (k < 0x200000) {
-    buf[0] = 0xf0 | (k >> 18);
-    buf[1] = 0x80 | ((k >> 12) & 0x3f);
-    buf[2] = 0x80 | ((k >> 6) & 0x3f);
-    buf[3] = 0x80 | (k & 0x3f);
-    retval = 4;
-  } else if (k < 0x4000000) {
-    buf[0] = 0xf8 | (k >> 24);
-    buf[1] = 0x80 | ((k >> 18) & 0x3f);
-    buf[2] = 0x80 | ((k >> 12) & 0x3f);
-    buf[3] = 0x80 | ((k >> 6) & 0x3f);
-    buf[4] = 0x80 | (k & 0x3f);
-    retval = 5;
-  } else {
-    buf[0] = 0xfc | (k >> 30);
-    buf[1] = 0x80 | ((k >> 24) & 0x3f);
-    buf[2] = 0x80 | ((k >> 18) & 0x3f);
-    buf[3] = 0x80 | ((k >> 12) & 0x3f);
-    buf[4] = 0x80 | ((k >> 6) & 0x3f);
-    buf[5] = 0x80 | (k & 0x3f);
-    retval = 6;
-  }
-  buf[retval] = '\0';
-
-  return retval;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -252,7 +207,7 @@ static const entity_ht *unescape_inverse_map(int all, int flags)
  * unicode code points */
 static entity_table_opt determine_entity_table(int all, int doctype)
 {
-    entity_table_opt retval = {nullptr};
+    entity_table_opt retval = {nullptr,nullptr};
 
     assert(!(doctype == static_cast<int64_t>( EntBitmask::ENT_BM_XML1 ) && all ));
 
@@ -830,7 +785,7 @@ static inline bool resolve_named_entity_html(const char *start,
 /* }}} */
 
 
-char *string_html_encode(const char *old, int &oldlen,
+char *string_html_encode(const char *old, size_t &oldlen,
                          const int64_t flags, entity_charset charset,
                          bool double_encode, bool all)
 {
@@ -1593,7 +1548,7 @@ char *string_html_decode(
     char *ret = nullptr;
     enum entity_charset charset;
     const entity_ht *inverse_map = nullptr;
-    size_t new_size = TRAVERSE_FOR_ENTITIES_EXPAND_SIZE(oldlen);
+    int new_size = TRAVERSE_FOR_ENTITIES_EXPAND_SIZE(oldlen);
 
     if (all) {
         charset = determine_charset(hint_charset);

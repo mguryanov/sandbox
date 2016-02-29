@@ -55,6 +55,7 @@ test_html_translation_table(
         return false;
     }
 
+    return true;
 }
 
 bool
@@ -109,7 +110,7 @@ test_encode_sentence(
                  static_cast<int64_t>( EntBitmask::ENT_BM_SINGLE )  |
                  static_cast<int64_t>( EntBitmask::ENT_BM_DOUBLE );
 
-    int len=std::char_traits<char>::length( sentence );
+    size_t len=std::char_traits<char>::length( sentence );
     char* encoded_response=HPHP::string_html_encode(
                                         sentence,
                                         len,flag,
@@ -163,7 +164,7 @@ test_encode_entities(
         if( !v.second )
             continue;
 
-        int len=std::char_traits<char>::length( v.first );
+        size_t len=std::char_traits<char>::length( v.first );
         char* encoded_response=HPHP::string_html_encode(
                                             v.first,len,flag,
                                             row->second.charset,
@@ -220,7 +221,7 @@ test_decode_entities(
     pair<size_t,size_t> p=pos[0];
     pos.pop_front();
 
-    for( int i = p.first; i <= p.second; ++i )
+    for( size_t i = p.first; i <= p.second; ++i )
     {
         int len=std::char_traits<char>::length( result[i].first );
         char* decoded_response=HPHP::string_html_decode(
