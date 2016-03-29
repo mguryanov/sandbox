@@ -5,9 +5,9 @@ set(CMAKE_VERBOSE_MAKEFILE
     ON
 )
 
-#set(CMAKE_BUILD_TYPE
-#    Debug
-#)
+set(CMAKE_BUILD_TYPE
+    Debug
+)
 
 set(CMAKE_C_FLAGS
     "-std=c99 -pedantic-errors"
@@ -16,6 +16,8 @@ set(CMAKE_C_FLAGS
 set(CMAKE_CXX_FLAGS
     "-std=c++11 -pedantic-errors -Wall -Wextra"
 )
+
+
 
 ### astarta.m ###
 
@@ -42,3 +44,31 @@ add_custom_target(
     SOURCES
     astarta-m.ru/astarta.m.test.pl
 )
+
+
+
+### rockstonedev.com ###
+
+set(src_rockstonedev_task1
+    rockstonedev.com/task1.cpp
+)
+
+set(src_rockstonedev_task2
+    rockstonedev.com/task2.cpp
+)
+
+add_executable(
+    rockstonedev.com/tic-tac-toe
+    ${src_rockstonedev_task1}
+)
+
+add_executable(
+    rockstonedev.com/refactoring
+    ${src_rockstonedev_task2}
+)
+
+#add_custom_target(
+#    astarta.m_test
+#    SOURCES
+#    rockstonedev.com/astarta.m.test.pl
+#)
