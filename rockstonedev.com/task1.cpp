@@ -10,265 +10,56 @@
 using namespace std;
 
 
-
 enum {
     unused = 0x0,
     user_used,
-    self_used,
-    user_hold,
-    self_hold
+    self_used
 };
 
+
+static char tic_tac[3] = { ' ', 'U', 'C' };
+
+
+static constexpr u_int8_t weight_center = 4;
+static const u_int8_t weight_corner = 3;
+static const u_int8_t weight_cross = 2;
 
 
 typedef struct {
-    u_int8_t x;
-    u_int8_t y;
-    u_int8_t z;
-    u_int8_t w;
-} vec_t;
+    u_int8_t id;
+    u_int8_t w;     /* init weight  : chance to win */
+    u_int8_t ls;    /* life score   : law of energy conservation */
+    u_int8_t sr[8]; /* successors */
+} static_cell_data_t;
 
 
-static constexpr u_int8_t weight_perimetr = 3 + 2 + 3;
-static constexpr u_int8_t weight_througth_center_diagonal = 3 + 4 + 3;
-static constexpr u_int8_t weight_througth_center_vertical = 2 + 4 + 2 +
-                                                /* center priority */ 1;
-
-
-static vec_t vecs[8] = {
-    {1,2,3,weight_perimetr},
-    {1,4,7,weight_perimetr},
-    {1,5,9,weight_througth_center_diagonal},
-    {2,5,8,weight_througth_center_vertical},
-    {3,5,7,weight_througth_center_diagonal},
-    {3,6,9,weight_perimetr},
-    {4,5,6,weight_througth_center_vertical},
-    {7,8,9,weight_perimetr}
+static constexpr static_cell_data_t cells[9] = {
+    {0,weight_corner,6,{1,2,4,6,3,8}},
+    {1,weight_cross,4,{2,0,4,7}},
+    {2,weight_corner,6,{5,8,4,6,1,0}},
+    {3,weight_cross,4,{0,6,4,5}},
+    {4,weight_center,0,{0}},
+    {5,weight_cross,4,{8,2,4,3}},
+    {6,weight_corner,6,{3,0,4,2,7,8}},
+    {7,weight_cross,4,{6,8,4,1}},
+    {8,weight_corner,6,{7,6,4,0,5,2}}
 };
 
 
-
-template<typename T1> struct triplet_s;
+template<typename T1> struct volatile_cell_s;
 
 template<>
-struct triplet_s<u_int8_t> {
+struct volatile_cell_s<u_int8_t> {
 
-    triplet_s ( u_int8_t i ) :
-        id(i),
-        hit_score(0),
-        vec(vecs[i-1])
+    volatile_cell_s ( u_int8_t i )
+        :
+            life_score( cells[i].w ),
+            cell( cells[i] )
     {}
 
-    u_int8_t id;
-    u_int8_t hit_score;
-    vec_t& vec;
+    u_int8_t life_score;
+    const static_cell_data_t& cell;
 
-};
-
-
-
-template<typename T1> struct list_s;
-template<typename T1>
-struct node_s {
-
-    friend struct list_s<T1>;
-
-    node_s( node_s<T1>* parent,
-            node_s<T1>* child )
-    :
-        prev( parent ),
-        next( child )
-    {}
-
-    ~node_s() {}
-
-private:
-    T1* item;
-    node_s<T1>* prev;
-    node_s<T1>* next;
-};
-
-
-
-template<typename T1>
-struct list_s {
-
-    list_s( )
-    :
-        head( nullptr ),
-        tail( nullptr ),
-        direct( nullptr ),
-        dpos( 0 ),
-        nelts( 0 )
-    {}
-
-    ~list_s()
-    {
-        node_s<T1>* next=head;
-
-        while ( next ) {
-            node_s<T1>* tmp=next->next;
-            delete_node( &next );
-            next=tmp;
-        }
-    }
-
-
-    bool
-    sorted_insert( T1* item )
-    {
-        if ( tail == nullptr ){
-            tail=new node_s<T1>( nullptr, nullptr );
-            tail->item=item;
-            head=tail;
-            ++nelts;
-            return true;
-        }
-
-        node_s<T1>* next=head;
-
-        while( next ) {
-            node_s<T1>* tmp=next->next;
-
-            if ( next->item->vec.w >= item->vec.w ) {
-                next=tmp;
-                continue;
-            }
-
-            else {
-                tmp=next->prev;
-                node_s<T1>* nn=new node_s<T1>( tmp, next );
-                nn->item=item;
-                next->prev=nn;
-                if( next == head ) {
-                    head=nn;
-                } else {
-                    tmp->next=nn;
-                }
-                ++nelts;
-            }
-
-            return true;
-        }
-
-        tail->next=new node_s<T1>( tail, nullptr );
-        tail->next->item=item;
-        tail=tail->next;
-
-        ++nelts;
-        return true;
-    }
-
-
-    bool next ()
-    {
-        if ( head == nullptr || nelts == 0 || direct == tail )
-            return false;
-
-        if ( direct == nullptr ) { /* init iterator */
-            dpos=0;
-            direct=head;
-        }
-
-        else {
-            ++dpos;
-            direct=direct->next;
-        }
-
-        return true;
-    }
-
-
-    bool get ( T1** v )
-    {
-        if( direct == nullptr ) {
-            return false;
-        }
-
-        *v=direct->item;
-        return true;
-    }
-
-
-    void remove ()
-    {
-        if( direct == nullptr ) {
-            return;
-        }
-
-        if( direct->next ) {
-            node_s<T1>* next=direct->next;
-            next->prev=direct->prev;
-        }
-
-        if( direct->prev ) {
-            node_s<T1>* prev=direct->prev;
-            prev->next=direct->next;
-        }
-    }
-
-
-    void resect ()
-    {
-        if( direct == nullptr ) {
-            return;
-        }
-
-        delete_node( &direct );
-    }
-
-private:
-
-    node_s<T1>* head;
-    node_s<T1>* tail;
-    node_s<T1>* direct;
-    unsigned int dpos;
-    unsigned int nelts;
-
-
-    bool delete_node( node_s<T1>** node )
-    {
-        if ( nelts == 0 ) {
-            return false;
-        }
-
-        node_s<T1>* next=(*node)->next;
-
-        if ( *node == tail ) {
-            tail=(*node)->prev;
-            if ( tail ) {
-                tail->next=nullptr;
-            }
-        }
-
-        else if ( *node==head ) {
-            head=(*node)->next;
-        }
-
-        else {
-            (*node)->prev->next=next;
-            next->prev=(*node)->prev;
-        }
-
-        if ( direct == *node )
-        {
-            if ( next ) {
-                direct=next->prev;
-            }
-
-            else {
-                direct=tail;
-            }
-        }
-
-        delete *node;
-        *node=next;
-
-        if ( nelts )
-            --nelts;
-
-        return true;
-    }
 };
 
 
@@ -301,6 +92,118 @@ get_data_from_stdin( u_int* cell )
 
 
 
+static bool
+reverse_compare_by_weight (volatile_cell_s<u_int8_t>* first,
+                           volatile_cell_s<u_int8_t>* second)
+{
+    return ( first->cell.w >= second->cell.w );
+}
+
+
+
+static void
+clear() {
+    cout << "\x1B[2J\x1B[H";
+}
+
+
+
+typedef pair<u_int8_t,volatile_cell_s<u_int8_t>*> playborad_cell_t;
+
+static void
+render_playboard ( array<playborad_cell_t,9>& playboard )
+{
+    clear ();
+
+    uint index=0;
+    for( uint r=0; r<5; ++r ) {
+
+        if( r % 2 ) {
+            for( uint c=0; c<5; ++c ) {
+                if( c % 2 )
+                    cout << "\u256C";
+                else
+                    cout << "\u2550";
+            }
+
+            cout << endl;
+            continue;
+        }
+
+        for( uint c=0; c<5; ++c ) {
+            if( c % 2 ) {
+                cout << "\u2551";
+            }
+
+            else {
+                 cout << char(tic_tac[playboard[index].first]);
+                ++index;
+            }
+        }
+        cout << endl;
+    }
+}
+
+
+static bool
+winner_check ( u_int8_t id,
+               array<playborad_cell_t,9>& playboard )
+{
+    /* hardcore */
+    for( uint i=0,score_x=0; i < 9; ++i ) {
+
+        if( i % 3 == 0 )
+            score_x=0;
+
+        if( playboard[i].first != playboard[id].first ) {
+            continue;
+        }
+
+        if( ++score_x == 3)
+            return true;
+    }
+
+    for( uint i=0,y=0,z=0,score_y=0; i < 9; ++i, ++y ) {
+
+        if( i % 3 == 0 ){
+            score_y=0;
+            y=0;
+            ++z;
+        }
+
+        if( playboard[3*y+z].first != playboard[id].first ) {
+            continue;
+        }
+
+        if( ++score_y == 3)
+            return true;
+    }
+
+    for( uint i=0,x=0,y=0,score=0; i < 3; ++i, ++x, ++y ) {
+
+        if( playboard[3*x+y].first != playboard[id].first ) {
+            continue;
+        }
+
+        if( ++score == 3)
+            return true;
+    }
+
+    for( uint i=0,x=0,score=0; i < 3; ++i, ++x ) {
+
+        if( playboard[2*x+2].first != playboard[id].first ) {
+            continue;
+        }
+
+        if( ++score == 3)
+            return true;
+    }
+
+    return false;
+}
+
+
+
 
 int main( int argc, char** argv )
 {
@@ -312,34 +215,30 @@ int main( int argc, char** argv )
         return 0;
     }
 
-    array<u_int8_t,9> playboard { unused };
+    array<playborad_cell_t,9> playboard {
+        playborad_cell_t(unused,nullptr)
+    };
 
-    list_s<triplet_s<u_int8_t>> unused_triplets;
-    list_s<triplet_s<u_int8_t>> user_triplets;
-    list_s<triplet_s<u_int8_t>> self_triplets;
+    list<volatile_cell_s<u_int8_t>*> active_cells;
 
-    for( u_int8_t i=1; i<9; ++i ) {
-        unused_triplets.sorted_insert( new triplet_s<u_int8_t>( i ));
+    try {
+        for( u_int8_t i=0; i<9; ++i ) {
+            playboard[i].second = new volatile_cell_s<u_int8_t>( i );
+            active_cells.push_back( playboard[i].second );
+        }
     }
 
-/* for test purposes
- *
-    triplet_s<u_int8_t>* triplet;
-    while ( unused_triplets.next() && unused_triplets.get( &triplet )) {
-        printf("%d: %d, %d - %d - %d , %d\n",
-               triplet->id,
-               triplet->hit_score,
-               triplet->vec.x,
-               triplet->vec.y,
-               triplet->vec.z,
-               triplet->vec.w);
+    catch(...) {
+        cout << "Internal error!!!" << endl;
     }
-*/
+
+    const char* msg=nullptr;
 
     for(;;) {
 
-        list_s<triplet_s<u_int8_t>>& current_triplets = unused_triplets;
+        render_playboard( playboard );
 
+        active_cells.sort( reverse_compare_by_weight );
         cout << "Insert cell position:" << endl;
 
         u_int cell=0;
@@ -348,88 +247,56 @@ int main( int argc, char** argv )
             continue;
         }
 
-        if( playboard[cell] == user_used || playboard[cell] == self_used ) {
+        if( playboard[cell].first == user_used ||
+            playboard[cell].first == self_used )
+        {
             cout << "This cell ["
                  << cell % 3 << "," << cell / 3
                  << "] already used!!!" << endl;
             continue;
         }
 
-        else if( playboard[cell] == user_hold ) {
-            current_triplets = user_triplets;
+        playboard[cell].first = user_used;
+        volatile_cell_s<u_int8_t>* user_hit_cell = playboard[cell].second;
+
+        for( u_int8_t i=0; i<user_hit_cell->cell.ls; ++i ) {
+            ++playboard[user_hit_cell->cell.sr[i]].second->life_score;
         }
 
-        else if( playboard[cell] == self_hold ) {
-            current_triplets = self_triplets;
-        }
+        active_cells.remove( user_hit_cell );
 
-        u_int8_t user_hit_score=0;
-        triplet_s<u_int8_t>* triplet;
-        while ( current_triplets.next() && current_triplets.get( &triplet )) {
-            printf("%d: %d, %d - %d - %d , %d\n",
-                   triplet->id,
-                   triplet->hit_score,
-                   triplet->vec.x,
-                   triplet->vec.y,
-                   triplet->vec.z,
-                   triplet->vec.w);
-
-            if( cell == triplet->vec.x ||
-                cell == triplet->vec.y ||
-                cell == triplet->vec.z )
-            {
-                if( playboard[cell] == user_hold ) {
-                    user_hit_score = ++triplet->hit_score;
-                }
-
-                if( playboard[cell] == unused ) {
-                    user_hit_score = ++triplet->hit_score;
-                    current_triplets.remove();
-                    user_triplets.sorted_insert( triplet );
-                    playboard[triplet->vec.x] = user_hold;
-                    playboard[triplet->vec.y] = user_hold;
-                    playboard[triplet->vec.z] = user_hold;
-                }
-
-                else if( playboard[cell] == self_hold ) {
-                    current_triplets.resect();
-                }
-
-                playboard[cell] = user_used;
-                break;
-            }
-        }
-
-        if( user_hit_score == 3 ) {
-            cout << "You are win!! Сongratulations!!!" << endl;
+        if( winner_check( cell, playboard )) {
+            msg = "You are winner!!! Congratulation!";
             break;
         }
 
-        else if( user_hit_score == 2) {
-            if( playboard[triplet->vec.x] == user_hold ) {
-                playboard[triplet->vec.x] = self_used;
-            }
+        active_cells.sort( reverse_compare_by_weight );
 
-            else if( playboard[triplet->vec.y] == user_hold ) {
-                playboard[triplet->vec.y] = self_used;
-            }
-
-            else if( playboard[triplet->vec.z] == user_hold ) {
-                playboard[triplet->vec.z] = self_used;
-            }
-
-            else {
-                cout << "Something wrong!!!" << endl;
-                break;
-            }
-
-            current_triplets.resect();
+        /* ai */
+        if( active_cells.empty()) {
+            msg =  "No winer now!!! Have a luck next time!";
+            break;
         }
 
-        else {
+        volatile_cell_s<u_int8_t>* ai_hit_cell = active_cells.front();
+        active_cells.pop_front();
 
+        playboard[ai_hit_cell->cell.id].first = self_used;
+
+        if( winner_check( ai_hit_cell->cell.id, playboard )) {
+            msg = "AI are winner!!!";
+            break;
         }
+    }
 
+    if( msg ) {
+        render_playboard( playboard );
+        cout << msg << endl;
+    }
+
+    for( auto v : playboard ) {
+        if( v.second )
+            delete v.second;
     }
 
     return 0;
