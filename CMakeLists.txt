@@ -45,6 +45,11 @@ add_custom_target(
     astarta-m.ru/astarta.m.test.pl
 )
 
+#add_custom_target(
+#    astarta.m_test
+#    SOURCES
+#    rockstonedev.com/astarta.m.test.pl
+#)
 
 
 ### rockstonedev.com ###
@@ -67,8 +72,6 @@ add_executable(
     ${src_rockstonedev_task2}
 )
 
-#add_custom_target(
-#    astarta.m_test
-#    SOURCES
-#    rockstonedev.com/astarta.m.test.pl
-#)
+target_link_libraries(
+    rockstonedev.com/refactoring -pthread
+)
